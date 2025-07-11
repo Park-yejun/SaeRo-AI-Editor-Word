@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function createWordClientSide() {
     showLoadingPopup(); // 로딩 팝업 표시
 
-    // 1. UI에서 모든 설정값 가져오기 (이 부분은 기존과 동일합니다)
+    // 1. UI에서 모든 설정값 가져오기
     const title = docTitleInput.value.trim();
     const content = mainTextArea.value;
     const settings = {
@@ -573,12 +573,12 @@ async function createWordClientSide() {
         margin_right: parseFloat(marginRightInput.value) || 2.5,
     };
     
-    // --- [핵심] Colab에서 실행 중인 파이썬 서버로 데이터 전송 ---
+    // --- [핵심] Cloud Run 백엔드로 데이터 전송 ---
     try {
-        // 2. Colab의 Public URL로 데이터를 POST 방식으로 보냅니다.
-
-    const response = await fetch(`${serverUrl}/create-docx`, {
-
+        // 2. 우리가 배포한 Cloud Run의 URL로 데이터를 POST 방식으로 보냅니다.
+        const BACKEND_URL = "https://docx-creator-run-sraieditor20250711-e86cd.a.run.app"; // ❗ 여기에 배포된 Cloud Run URL을 넣습니다.
+        
+        const response = await fetch(`${BACKEND_URL}/create-docx`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -617,10 +617,11 @@ async function createWordClientSide() {
         // 네트워크 오류 등 fetch 자체에 문제가 생긴 경우
         hideLoadingPopup();
         console.error('Error:', error);
-        showCustomAlert('Colab 서버에 연결할 수 없습니다. Colab 셀이 실행 중인지 확인해주세요.');
+        // 오류 메시지를 좀 더 명확하게 수정
+        showCustomAlert('백엔드 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
     }
 }
-
+    
 </script>
 
 </body>
