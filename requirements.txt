@@ -1,3 +1,6 @@
 Flask
 Flask-Cors
+python-docx
+Pillow
+requests
 gunicorn
