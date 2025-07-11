@@ -14,4 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 컨테이너가 시작될 때 웹 서버(gunicorn)를 실행합니다.
+# Cloud Run이 지정하는 포트($PORT)에서 요청을 받도록 설정합니다.
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
