@@ -379,12 +379,12 @@ function getEditorHtml() {
         </div>
 
         <div class="action-buttons">
-          <button class="open-drive" onclick="openGoogleDrive()">Google Drive</button>
-          <button class="load-file" onclick="loadTextFileList()">불러오기</button>
-          <button class="save-draft" onclick="saveDraft()">저장<small style="font-weight: normal; margin-left: 3px;">[Ctrl+S]</small></button>
-          <button class="create-doc" onclick="createWordClientSide()">문서작성</button>
-          <button class="delete-all" onclick="clearTextArea()">전체삭제</button>
-        </div>
+          <button class="open-drive" onclick="showCustomAlert('준비 중인 기능입니다.')">Google Drive</button>
+          <button class="load-file" onclick="showCustomAlert('준비 중인 기능입니다.')">불러오기</button>
+          <button class="save-draft" onclick="showCustomAlert('준비 중인 기능입니다.')">저장<small style="font-weight: normal; margin-left: 3px;">[Ctrl+S]</small></button>
+          <button class="create-doc" onclick="createWordClientSide()">문서작성</button>           <button class="delete-all" onclick="clearTextArea()">전체삭제</button>
+        </div>
+
       </div>
       <div id="loadingPopup" class="loading-popup" style="display: none;"> 
         <div class="loading-popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
@@ -553,8 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// --- 핵심 편집 기능 (문서 생성, 저장, 불러오기) --
-
 async function createWordClientSide() {
     showLoadingPopup(); // 로딩 팝업 표시
 
@@ -576,7 +574,7 @@ async function createWordClientSide() {
     // --- [핵심] Cloud Run 백엔드로 데이터 전송 ---
     try {
         // 2. 우리가 배포한 Cloud Run의 URL로 데이터를 POST 방식으로 보냅니다.
-        const BACKEND_URL = "https://docx-creator-run-sraieditor20250711-e86cd.a.run.app"; // ❗ 여기에 배포된 Cloud Run URL을 넣습니다.
+        const BACKEND_URL = "https://docx-creator-run-sraieditor20250711-e86cd.a.run.app"; // ❗ 실제 배포된 Cloud Run URL
         
         const response = await fetch(`${BACKEND_URL}/create-docx`, {
             method: 'POST',
@@ -600,21 +598,19 @@ async function createWordClientSide() {
             a.style.display = 'none';
             a.href = url;
             
-            // 파일명 결정
             let fileName = title ? `${title}.docx` : 'generated_document.docx';
             a.download = fileName;
             
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url); // 메모리 해제
+            window.URL.revokeObjectURL(url);
+            a.remove();
             showCustomAlert(`'${fileName}' 파일 다운로드가 시작됩니다.`);
         } else {
-            // 서버에서 오류 응답이 온 경우
             const error = await response.json();
             showCustomAlert('파일 생성 중 오류 발생: ' + error.error);
         }
     } catch (error) {
-        // 네트워크 오류 등 fetch 자체에 문제가 생긴 경우
         hideLoadingPopup();
         console.error('Error:', error);
         // 오류 메시지를 좀 더 명확하게 수정
