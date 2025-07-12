@@ -1,14 +1,12 @@
 # 파일 이름: .github/workflows/firebase-deploy.yml
 
-name: Deploy to Firebase Hosting
+name: Deploy Frontend and Backend
 
-# 언제 이 자동화를 실행할지 결정합니다.
 on:
   push:
     branches:
-      - main  # 'main' 브랜치에 코드가 푸시될 때마다 실행
+      - main # 'main' 브랜치에 코드가 푸시될 때마다 실행
 
-# 실제 실행될 작업 내용입니다.
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,11 +15,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. 1단계에서 등록한 비밀 키를 사용하여 Firebase에 배포합니다.
-      - name: Deploy to Firebase Hosting
+      # 2. Google Cloud에 인증합니다 (Cloud Run 배포를 위해 필요).
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+
+      # 3. 🚀 백엔드를 Google Cloud Run에 배포합니다. (이 부분이 추가되었습니다!)
+      - name: Deploy Backend to Cloud Run
+        run: |
+          gcloud run deploy sraieditor20250711 \
+            --source . \
+            --region asia-northeast3 \
+            --allow-unauthenticated \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+        env:
+            GCP_PROJECT_ID: sraieditor-20250711 # 여기에 본인의 프로젝트 ID를 입력하세요.
+
+
+      # 4. ✅ 프론트엔드를 Firebase Hosting에 배포합니다. (기존과 동일)
+      - name: Deploy Frontend to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' # 1단계에서 만든 비밀 키 이름
-          projectId: sraieditor20250711 # 배포할 당신의 프로젝트 ID
-          channelId: live # 'live'는 실제 운영 사이트를 의미합니다.
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: sraieditor-20250711 # 여기에 본인의 프로젝트 ID를 입력하세요.
+          channelId: live
