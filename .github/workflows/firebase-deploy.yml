@@ -23,5 +23,5 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' # 1단계에서 만든 비밀 키 이름
-          projectId: sraieditor-20250711 # 배포할 당신의 프로젝트 ID
+          projectId: sraieditor20250711 # 배포할 당신의 프로젝트 ID
           channelId: live # 'live'는 실제 운영 사이트를 의미합니다.
