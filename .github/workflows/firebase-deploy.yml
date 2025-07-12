@@ -1,43 +1,45 @@
-# 파일 이름: .github/workflows/firebase-deploy.yml
+# 파일 이름: .github/workflows/firebase-deploy.yml (수정본)
 
 name: Deploy Frontend and Backend
 
 on:
   push:
     branches:
-      - main # 'main' 브랜치에 코드가 푸시될 때마다 실행
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
-      # 1. GitHub 저장소의 코드를 작업 공간으로 가져옵니다.
+      # 1. GitHub 저장소의 코드를 가져옵니다.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Google Cloud에 인증합니다 (Cloud Run 배포를 위해 필요).
+      # 2. Google Cloud에 인증합니다.
       - name: Authenticate to Google Cloud
+        id: auth
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
 
-      # 3. 🚀 백엔드를 Google Cloud Run에 배포합니다. (이 부분이 추가되었습니다!)
+      # 3. 🚀 백엔드를 Google Cloud Run에 배포합니다. (Google 공식 Action 사용)
       - name: Deploy Backend to Cloud Run
-        run: |
-          gcloud run deploy sraieditor20250711 \
-            --source . \
-            --region asia-northeast3 \
-            --allow-unauthenticated \
-            --project ${{ secrets.GCP_PROJECT_ID }}
-        env:
-            GCP_PROJECT_ID: sraieditor-20250711 # 여기에 본인의 프로젝트 ID를 입력하세요.
+        id: deploy-run
+        uses: 'google-github-actions/deploy-run@v2'
+        with:
+          service: sraieditor20250711    # Cloud Run에 배포할 서비스 이름
+          region: asia-northeast3      # 서비스가 배포된 리전
+          source: .                    # 소스 코드 위치 (프로젝트 루트)
 
-
-      # 4. ✅ 프론트엔드를 Firebase Hosting에 배포합니다. (기존과 동일)
+      # 4. 프론트엔드를 Firebase Hosting에 배포합니다.
       - name: Deploy Frontend to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: sraieditor-20250711 # 여기에 본인의 프로젝트 ID를 입력하세요.
+          projectId: sraieditor-20250711
           channelId: live
