@@ -110,7 +110,7 @@
         padding: 8px 12px; 
         cursor: pointer; 
         background-color: transparent; 
-        border: 1px solid transparent;
+        border: 1px solid var(--border-color);
         color: var(--text-secondary-color);
         transition: all 0.2s ease-in-out;
         flex-shrink: 0;
@@ -460,8 +460,47 @@ function createTabComponent(targetSelector, title, initialContentHtml) {
     const tabList = container.querySelector('.tab-list');
     const tabContentArea = container.querySelector('.tab-content-area');
     const addButton = container.querySelector('.add-tab-btn');
-    let tabCounter = 1;
-    addButton.addEventListener('click', () => { tabCounter++; const newTabId = `tab${tabCounter}`; const activeTab = tabList.querySelector('.tab.active'); if (activeTab) activeTab.classList.remove('active'); const activePane = tabContentArea.querySelector('.tab-content-pane.active'); if (activePane) activePane.classList.remove('active'); const newTab = document.createElement('div'); newTab.className = 'tab active'; newTab.dataset.tabId = newTabId; newTab.innerHTML = `<span>${newTabId}</span><span class="close-tab">×</span>`; tabList.appendChild(newTab); const newPane = document.createElement('div'); newPane.className = 'tab-content-pane active'; newPane.dataset.tabId = newTabId; newPane.innerHTML = `<p>${newTabId}의 새로운 콘텐츠 영역입니다.</p>`; tabContentArea.appendChild(newPane); tabList.scrollLeft = tabList.scrollWidth; });
+    let tabCounter = 1;  
+    addButton.addEventListener('click', () => {
+        tabCounter++;
+        const newTabId = `tab${tabCounter}`;
+    
+        // 기존 활성 탭/내용 비활성화
+        const activeTab = tabList.querySelector('.tab.active');
+        if (activeTab) activeTab.classList.remove('active');
+        const activePane = tabContentArea.querySelector('.tab-content-pane.active');
+        if (activePane) activePane.classList.remove('active');
+    
+        // 새 탭 버튼 생성
+        const newTab = document.createElement('div');
+        newTab.className = 'tab active';
+        newTab.dataset.tabId = newTabId;
+        newTab.innerHTML = `<span>${newTabId}</span><span class="close-tab">×</span>`;
+        tabList.appendChild(newTab);
+    
+        // 새 탭 내용(pane) 생성
+        const newPane = document.createElement('div');
+        newPane.className = 'tab-content-pane active';
+        newPane.dataset.tabId = newTabId;
+    
+        // [핵심 수정] Editor 탭(Section2-3)에서만 편집기 HTML을 복제해서 넣기
+        if (container.classList.contains('Section2-3')) {
+            newPane.innerHTML = getEditorHtml(); // 편집기 HTML을 가져와서 삽입
+        } else {
+            // 다른 탭에서는 기존처럼 간단한 텍스트 표시
+            newPane.innerHTML = `<p>${newTabId}의 새로운 콘텐츠 영역입니다.</p>`;
+    }
+        
+        tabContentArea.appendChild(newPane);
+        tabList.scrollLeft = tabList.scrollWidth;
+
+        // [중요] 새 탭에 포함된 편집기 요소들에 대해 변수를 다시 초기화해야 합니다.
+        // 그렇지 않으면 새 탭의 버튼들이 작동하지 않습니다.
+        if (container.classList.contains('Section2-3')) {
+            initializeEditorVariables();
+        }
+    });
+    
     tabList.addEventListener('click', (event) => { const target = event.target; if (target.classList.contains('close-tab')) { const tabToRemove = target.closest('.tab'); const paneToRemove = tabContentArea.querySelector(`[data-tab-id="${tabToRemove.dataset.tabId}"]`); if (tabList.querySelectorAll('.tab').length === 1) { showCustomAlert('마지막 탭은 닫을 수 없습니다.'); return; } if (tabToRemove.classList.contains('active')) { const nextTab = tabToRemove.previousElementSibling && tabToRemove.previousElementSibling.classList.contains('tab') ? tabToRemove.previousElementSibling : tabToRemove.nextElementSibling; if (nextTab) nextTab.click(); } tabToRemove.remove(); paneToRemove.remove(); return; } const clickedTab = target.closest('.tab'); if (clickedTab) { tabList.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tabContentArea.querySelectorAll('.tab-content-pane').forEach(p => p.classList.remove('active')); clickedTab.classList.add('active'); const correspondingPane = tabContentArea.querySelector(`[data-tab-id="${clickedTab.dataset.tabId}"]`); if (correspondingPane) { correspondingPane.classList.add('active'); } } });
     tabList.addEventListener('dblclick', (event) => { const target = event.target; if (!target.matches('.tab > span:first-of-type')) { return; } const currentSpan = target; const currentName = currentSpan.textContent; const tempInput = document.createElement('input'); tempInput.type = 'text'; tempInput.value = currentName; tempInput.className = 'tab-edit-input'; currentSpan.style.display = 'none'; currentSpan.after(tempInput); tempInput.focus(); tempInput.select(); const finishEditing = () => { let newName = tempInput.value.trim(); if (!newName) { currentSpan.textContent = currentName; } else { const otherTabSpans = [...tabList.querySelectorAll('.tab > span:first-of-type')].filter(span => span !== currentSpan); const existingNames = otherTabSpans.map(span => span.textContent); let finalName = newName; let counter = 2; while (existingNames.includes(finalName)) { finalName = `${newName} (${counter})`; counter++; } currentSpan.textContent = finalName; } tempInput.remove(); currentSpan.style.display = ''; }; tempInput.addEventListener('blur', finishEditing); tempInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { finishEditing(); } }); });
     container.querySelectorAll('.tab-scroll-btn').forEach(button => { button.addEventListener('click', () => { const direction = parseInt(button.dataset.direction, 10); const scrollAmount = 200; tabList.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' }); }); });
