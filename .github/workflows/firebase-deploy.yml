@@ -1,4 +1,4 @@
-# 파일 이름: .github/workflows/firebase-deploy.yml (직접 명령어 실행 방식)
+# 파일 이름: .github/workflows/firebase-deploy.yml (직접 명령어 실행 방식))
 
 name: Deploy Frontend and Backend
 
