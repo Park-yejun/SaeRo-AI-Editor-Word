@@ -78,10 +78,13 @@
     /* ================================================================== */
     /* == 탭 시스템 스타일 (Redesigned by Gemini v2.1) == */
     /* ================================================================== */
+
     .tab-content-area {
         flex: 1;
         margin-top: 10px;
         display: flex;
+        border: 1px solid var(--border-color); /* 테두리를 유지하되 */
+        border-top: none; /* 위쪽 테두리만 제거 */
     }
     .tab-content-pane { display: none; }
     .tab-content-pane.active {
@@ -99,16 +102,31 @@
     }
     .tab-list { display: flex; flex: 1; overflow-x: auto; white-space: nowrap; align-items: flex-end; }
     .tab { 
-        padding: 10px 15px; cursor: pointer; background-color: transparent; 
-        border: none; border-bottom: 2px solid transparent;
+        padding: 10px 15px; 
+        cursor: pointer; 
+        background-color: #e9ecef; /* 비활성 탭 배경색 */
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        flex-shrink: 0; 
+        border: 1px solid var(--border-color); /* 모든 탭에 테두리 추가 */
+        border-radius: 6px 6px 0 0; /* 위쪽 모서리만 둥글게 */
+        margin-right: 4px;
+        margin-bottom: -1px; /* 탭바의 경계선과 겹치도록 살짝 내림 */
         color: var(--text-secondary-color);
         transition: all 0.2s ease-in-out;
-    }
-    .tab:hover { color: var(--primary-color); }
+    }      
+    .tab:hover { 
+        background-color: #f1f3f5;
+        color: var(--primary-color); 
+    }        
     .tab.active { 
-        border-bottom: 2px solid var(--primary-color);
+        background-color: var(--section-background); /* 콘텐츠 영역과 같은 흰색 배경 */
+        border-bottom-color: transparent; /* 아래쪽 테두리를 투명하게 하여 열린 느낌을 줌 */
         font-weight: 600; 
         color: var(--primary-color);
+        position: relative;
+        z-index: 2; /* 다른 탭보다 위에 오도록 설정 */
     }
     .tab-controls { display: flex; align-items: center; }
     .tab-nav-button { 
@@ -147,12 +165,23 @@
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
     #docTitle { flex-grow: 1; }
-    .global-settings-grid { 
-        display: flex; flex-direction: column; align-items: flex-start; 
-        gap: 8px; max-height: 58px; overflow-y: auto; padding-right: 10px; 
+    .global-settings-grid {
+        display: flex;
+        flex-direction: column; /* 세로 방향 배열 */
+        align-items: flex-start;
+        gap: 8px; /* 이 값이 '글꼴'과 '크기' 줄 사이의 세로 간격입니다. */
+        max-height: 72px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }    
+    .syntax-buttons-wrapper {
+        display: flex;
+        flex-wrap: wrap; /* 가로 배열 + 줄바꿈 */
+        gap: 8px; /* 이 값이 버튼들의 가로 및 세로 간격입니다. */
+        max-height: 72px;
+        overflow-y: auto;
+        padding-right: 10px;
     }
-
-    .syntax-buttons-wrapper { display: flex; flex-wrap: wrap; gap: 5px; max-height: 58px; overflow-y: auto; padding-right: 5px;}
     .syntax-buttons-wrapper button { padding: 4px 8px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; transition: filter 0.2s; }
     .syntax-buttons-wrapper button:hover { filter: brightness(1.15); }
     .syntax-buttons-wrapper button.group1 { background-color: #0056b3; }
