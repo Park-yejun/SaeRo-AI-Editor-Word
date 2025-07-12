@@ -573,7 +573,7 @@ async function createWordClientSide() {
     // --- [핵심] Cloud Run 백엔드로 데이터 전송 ---
     try {
         // 2. 우리가 배포한 Cloud Run의 URL로 데이터를 POST 방식으로 보냅니다.
-        const BACKEND_URL = "https://docx-creator-run-sraieditor20250711-e86cd.a.run.app"; // ❗ 실제 배포된 Cloud Run URL
+        const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app"; // ❗ 실제 배포된 Cloud Run URL
         
         const response = await fetch(`${BACKEND_URL}/create-docx`, {
             method: 'POST',
