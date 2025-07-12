@@ -62,7 +62,7 @@
     /* ================================================================== */
     .tab-content-area {
         flex: 1;
-        border: 1px solid #ddd;
+        border: 1px solid black;
         margin-top: 10px;
         display: flex;
     }
@@ -82,9 +82,9 @@
         flex-shrink: 0;
     }
     .tab-list { display: flex; flex: 1; overflow-x: auto; white-space: nowrap;}
-    .tab { padding: 8px 4px; cursor: pointer; background-color: #fff; display: flex; align-items: center; position: relative; justify-content: space-between; flex-shrink: 0; border: 1px solid #ddd; margin-right: -1px; }
+    .tab { padding: 8px 4px; cursor: pointer; background-color: #fff; display: flex; align-items: center; position: relative; justify-content: space-between; flex-shrink: 0; border: 1px solid black; margin-right: -1px; }
     .tab-controls { display: flex; }
-    .tab-nav-button { padding: 0 12px; display: flex; align-items: center; justify-content: center; background-color: #f0f0f0; border: 1px solid #ddd; border-top:none; cursor: pointer; font-size: 1.2em; color: #555; }
+    .tab-nav-button { padding: 0 12px; display: flex; align-items: center; justify-content: center; background-color: #f0f0f0; border: 1px solid black; border-top:none; cursor: pointer; font-size: 1.2em; color: #555; }
     .tab-nav-button:hover { background-color: #e0e0e0; }
     .tab.active { background-color: #f0f0f0; border-bottom: 3px solid #c62828; font-weight: bold; position: relative; top: -1px; z-index: 1; }
     .close-tab { width: 16px; height: 16px; line-height: 16px; text-align: center; font-size: 12px; border-radius: 50%; }
@@ -104,7 +104,7 @@
     .section {
         background-color: #f8f9fa;
         padding: 8px 10px;
-        border: 1px solid #ddd;
+        border: 1px solid black;
         border-radius: 6px;
         flex-shrink: 0;
     }
@@ -117,7 +117,7 @@
     .form-group input, 
     .form-group select {
         padding: 5px; 
-        border: 1px solid #ccc; 
+        border: 1px solid black; 
         border-radius: 3px; 
         font-size: 12px; 
     }
@@ -176,7 +176,7 @@
         gap: 6px;
     }
 
-    .syntax-button-like { background-color: #f8f9fa; border: 1px solid #ccc; border-radius: 3px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; }
+    .syntax-button-like { background-color: #f8f9fa; border: 1px solid black; border-radius: 3px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; }
     .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; padding: 4px; min-height: 200px; }
     #mainTextArea, #memoTextArea { width: 100%; height: 100%; border: none; resize: none; font-size: 13px; line-height: 1.5; padding: 8px; }
     .action-buttons { display: flex; justify-content: flex-end; gap: 4px; margin-top: 4px; flex-wrap: wrap; } 
@@ -193,7 +193,7 @@
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background-color: #fff; padding: 25px 35px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; }
     .modal-content p { margin: 0 0 20px 0; font-size: 1em; color: #333; }
-    .modal-content button { padding: 8px 25px; border: 1px solid #ccc; border-radius: 5px; background-color: #f0f0f0; cursor: pointer; font-size: 0.9em; transition: background-color 0.2s; }
+    .modal-content button { padding: 8px 25px; border: 1px solid black; border-radius: 5px; background-color: #f0f0f0; cursor: pointer; font-size: 0.9em; transition: background-color 0.2s; }
     .modal-content button:hover { background-color: #e0e0e0; }
 
     .custom-alert-popup {
@@ -224,7 +224,7 @@
     }
     .custom-alert-content button, .custom-alert-content .button-group button {
         padding: 8px 25px;
-        border: 1px solid #ccc;
+        border: 1px solid black;
         border-radius: 5px;
         background-color: #f0f0f0;
         cursor: pointer;
@@ -412,7 +412,7 @@ function showCustomConfirm(message) { const popup = document.getElementById('cus
 function createDocument() { if (!mainTextArea) return; showLoadingPopup(); let docTitle = docTitleInput.value.trim(); if (!docTitle) { docTitle = generateFilename('[작성]'); } const settings = { fontFamily: fontFamilySelect.value, fontSize: fontSizeInput.value, lineSpacing: lineSpacingInput.value, paraSpacingAfter: paraSpacingAfterInput.value, pageOrientation: document.getElementById('pageOrientation').value, marginTop: marginTopInput.value, marginBottom: marginBottomInput.value, marginLeft: marginLeftInput.value, marginRight: marginRightInput.value }; const payload = { content: mainTextArea.value, memoContent: memoTextArea.value }; google.script.run.withSuccessHandler(onCreateDocSuccess).withFailureHandler(onFailure).createDocumentInDrive(payload, docTitle, settings); }
 function saveDraft() { if (!mainTextArea) return; showLoadingPopup(); let docTitle = docTitleInput.value.trim(); if (!docTitle) { docTitle = generateFilename('[저장]'); } const settings = { fontFamily: fontFamilySelect.value, fontSize: fontSizeInput.value, lineSpacing: lineSpacingInput.value, paraSpacingAfter: paraSpacingAfterInput.value, pageOrientation: document.getElementById('pageOrientation').value, marginTop: marginTopInput.value, marginBottom: marginBottomInput.value, marginLeft: marginLeftInput.value, marginRight: marginRightInput.value }; const payload = { content: mainTextArea.value, memoContent: memoTextArea.value, settings: settings }; google.script.run.withSuccessHandler(message => { hideLoadingPopup(); showCustomAlert(message); }).withFailureHandler(onFailure).saveDraftToServer(payload, docTitle); }
 function loadTextFileList() { showLoadingPopup(); google.script.run.withSuccessHandler(showFileListPopup).withFailureHandler(onFailure).getRecentTxtFilesFromDrive(); }
-function showFileListPopup(fileList) { hideLoadingPopup(); if (!fileList || fileList.length === 0) { showCustomAlert("저장된 TXT 파일이 없습니다."); return; } const listHtml = fileList.map(file => `<div style="margin-bottom:6px;"><button onclick="loadTxtFile('${file.id}', this)" title="${file.name}" style="width:100%;padding:6px 10px;font-size:13px;border:1px solid #ccc;border-radius:5px;background:#fff;text-align:left;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${file.name}</button></div>`).join(""); const wrapper = document.createElement('div'); wrapper.id = "loadFileModal"; Object.assign(wrapper.style, { position: "fixed", top: "60px", left: "50%", transform: "translateX(-50%)", background: "#fff", border: "1px solid #444", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", borderRadius: "8px", zIndex: "10000", width: "calc(100% - 40px)", maxWidth: "840px", maxHeight: "80vh", display: "flex", flexDirection: "column" }); wrapper.innerHTML = `<div style="padding:16px 20px;border-bottom:1px solid #ddd;font-size:17px;font-weight:bold;text-align:center;background:#f9f9f9;">불러오기</div><div style="flex:1;overflow-y:auto;padding:16px 20px;">${listHtml}</div><div style="padding:12px 20px;border-top:1px solid #ddd;text-align:right;background:#f9f9f9;"><button onclick="document.getElementById('loadFileModal').remove()" style="padding:6px 14px;font-size:13px;background:#444;color:white;border:none;border-radius:4px;">닫기</button></div>`; document.body.appendChild(wrapper); }
+function showFileListPopup(fileList) { hideLoadingPopup(); if (!fileList || fileList.length === 0) { showCustomAlert("저장된 TXT 파일이 없습니다."); return; } const listHtml = fileList.map(file => `<div style="margin-bottom:6px;"><button onclick="loadTxtFile('${file.id}', this)" title="${file.name}" style="width:100%;padding:6px 10px;font-size:13px;border:1px solid black;border-radius:5px;background:#fff;text-align:left;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${file.name}</button></div>`).join(""); const wrapper = document.createElement('div'); wrapper.id = "loadFileModal"; Object.assign(wrapper.style, { position: "fixed", top: "60px", left: "50%", transform: "translateX(-50%)", background: "#fff", border: "1px solid #444", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", borderRadius: "8px", zIndex: "10000", width: "calc(100% - 40px)", maxWidth: "840px", maxHeight: "80vh", display: "flex", flexDirection: "column" }); wrapper.innerHTML = `<div style="padding:16px 20px;border-bottom:1px solid black;font-size:17px;font-weight:bold;text-align:center;background:#f9f9f9;">불러오기</div><div style="flex:1;overflow-y:auto;padding:16px 20px;">${listHtml}</div><div style="padding:12px 20px;border-top:1px solid black;text-align:right;background:#f9f9f9;"><button onclick="document.getElementById('loadFileModal').remove()" style="padding:6px 14px;font-size:13px;background:#444;color:white;border:none;border-radius:4px;">닫기</button></div>`; document.body.appendChild(wrapper); }
 function loadTxtFile(fileId, buttonElement) { showLoadingPopup(); google.script.run.withSuccessHandler(result => { hideLoadingPopup(); const modal = document.getElementById("loadFileModal"); if (modal) modal.remove(); if (!result) return; docTitleInput.value = result.name.replace(/\[저장\]\s*/, "").replace(/_\d{4}-\d{2}-\d{2} \d{2}꞉\d{2}\.txt$/, "").replace(/\.txt$/, ""); try { const data = JSON.parse(result.content); mainTextArea.value = data.content || ''; memoTextArea.value = data.memoContent || ''; if (data.settings) { fontFamilySelect.value = data.settings.fontFamily || 'Batang'; fontSizeInput.value = data.settings.fontSize || '12'; lineSpacingInput.value = data.settings.lineSpacing || '1.5'; paraSpacingAfterInput.value = data.settings.paraSpacingAfter || '10'; document.getElementById('pageOrientation').value = data.settings.pageOrientation || 'PORTRAIT'; marginTopInput.value = data.settings.marginTop || '2.0'; marginBottomInput.value = data.settings.marginBottom || '2.0'; marginLeftInput.value = data.settings.marginLeft || '2.5'; marginRightInput.value = data.settings.marginRight || '2.5'; } showCustomAlert("파일과 설정을 불러왔습니다."); } catch (e) { mainTextArea.value = result.content; showCustomAlert("파일을 불러왔습니다. (설정값 미포함)"); } }).withFailureHandler(onFailure).getTxtFileContent(fileId); }
 async function clearTextArea() { if (!mainTextArea) return; try { await showCustomConfirm('문서 제목, 내용, 메모를 전체 삭제하시겠습니까?'); mainTextArea.value = ''; memoTextArea.value = ''; docTitleInput.value = ''; showCustomAlert('제목, 내용, 메모가 모두 삭제되었습니다.'); } catch (error) { console.log('삭제 취소'); } }
 
