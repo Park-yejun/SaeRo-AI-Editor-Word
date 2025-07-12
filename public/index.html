@@ -10,19 +10,19 @@
 
 <style>
     /* ================================================================== */
-    /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v3.0) == */
+    /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v3.1 Final) == */
     /* ================================================================== */
     :root {
-        --primary-color: #007bff;      
-        --secondary-color: #5a6268;     
-        --danger-color: #dc3545;       
-        --warning-color: #ffc107;      
-        --border-color: #dee2e6;       /* 테두리 색상 (조금 더 선명하게) */
-        --background-color: #f8f9fa;   /* 페이지 배경 색상 */
-        --section-background: #ffffff; /* 섹션 배경 색상 (흰색) */
-        --section-inner-background: #f1f3f5; 
-        --text-color: #212529;         
-        --text-secondary-color: #495057;  
+        --primary-color: #007bff;
+        --secondary-color: #5a6268;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --border-color: #ced4da;
+        --background-color: #f1f3f5;
+        --section-background: #ffffff;
+        --section-inner-background: #f8f9fa;
+        --text-color: #212529;
+        --text-secondary-color: #495057;
         --font-family-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
@@ -68,92 +68,89 @@
         min-width: 0;
         background-color: var(--section-background);
         border: 1px solid var(--border-color);
-        border-radius: 8px; /* 모서리 반경 살짝 줄임 */
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        padding: 10px; /* 내부 여백 추가 */
     }
     
     /* ================================================================== */
-    /* == 탭 시스템 스타일 (Redesigned by Gemini v3.0) == */
+    /* == 탭 시스템 스타일 (Redesigned by Gemini v3.1 Final) == */
     /* ================================================================== */
+    /* ▼▼▼ [수정 1] 탭 내부 콘텐츠 영역의 불필요한 테두리 제거 ▼▼▼ */
     .tab-content-area {
         flex: 1;
         margin-top: 10px;
         display: flex;
-        padding: 0 10px; /* 내부 컨텐츠 영역에 패딩 추가 */
+        /* border와 background 속성 제거하여 투명하게 만듦 */
     }
     .tab-content-pane { display: none; }
     .tab-content-pane.active {
         display: block;
         flex: 1;
         overflow-y: auto;
-        padding-top: 5px;
     }
+    /* ▼▼▼ [수정 2] 탭 바와 탭 버튼 디자인 개선 ▼▼▼ */
     .tab-bar {
         height: 40px;
         background-color: transparent;
         display: flex;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--border-color); /* 탭 아래 선 두께 조정 */
-        padding: 0 10px; /* 탭 바 자체에도 여백 추가 */
+        border-bottom: 1px solid var(--border-color); 
+        padding-left: 5px; /* 왼쪽 여백 추가 */
     }
     .tab-list { 
         display: flex; 
         flex: 1; 
-        overflow: hidden; /* ▼▼▼ [수정] 스크롤바를 숨깁니다 ▼▼▼ */
+        overflow: hidden; /* 스크롤바 숨김 */
         white-space: nowrap; 
-        align-items: flex-end; 
+        align-items: center; /* 탭들을 세로 중앙에 위치 */
     }
-    /* ▼▼▼ [수정] 스크롤바 숨기기 위한 추가 코드 ▼▼▼ */
     .tab-list::-webkit-scrollbar { display: none; }
     .tab-list { -ms-overflow-style: none; scrollbar-width: none; }
 
     .tab { 
-        padding: 10px 15px; 
+        padding: 8px 12px; 
         cursor: pointer; 
         background-color: transparent; 
-        border: none; 
-        border-bottom: 2px solid transparent;
+        border: 1px solid transparent; /* 기본 테두리는 투명 */
         color: var(--text-secondary-color);
         transition: all 0.2s ease-in-out;
-        flex-shrink: 0; /* 탭이 줄어들지 않도록 설정 */
+        flex-shrink: 0;
+        border-radius: 6px; /* 모든 탭에 둥근 모서리 적용 */
+        margin-right: 5px;
     }
-    .tab:hover { color: var(--primary-color); }
+    .tab:hover { 
+        background-color: #e9ecef;
+        color: var(--text-color); 
+    }
     .tab.active { 
-        border-bottom-color: var(--primary-color);
+        background-color: var(--primary-color);
+        color: white;
         font-weight: 600; 
-        color: var(--text-color);
     }
     .tab-controls { display: flex; align-items: center; }
     .tab-nav-button { 
         padding: 0 10px; height: 28px; display: flex; align-items: center; justify-content: center; 
-        background-color: transparent; border: 1px solid var(--border-color); cursor: pointer; 
+        background-color: #fff; border: 1px solid var(--border-color); cursor: pointer; 
         font-size: 1.1em; color: var(--text-secondary-color); border-radius: 6px; margin-left: 5px;
     }
     .tab-nav-button:hover { background-color: #e9ecef; }
-    .close-tab { margin-left: 8px; font-size: 14px; line-height: 1; padding: 4px; border-radius: 50%; }
-    .close-tab:hover { background-color: #dee2e6; }
-    .tab-edit-input { border: 1px solid var(--primary-color); outline: none; padding: 1px 3px; width: 80px; font-family: inherit; font-size: inherit; border-radius: 3px; }
+    .close-tab { margin-left: 8px; font-size: 14px; line-height: 1; padding: 2px; border-radius: 50%; }
+    .close-tab:hover { background-color: rgba(255,255,255,0.3); }
 
     /* ================================================================== */
-    /* == 편집기 내부 스타일 (Redesigned by Gemini v3.0) == */
+    /* == 편집기 내부 스타일 (Redesigned by Gemini v3.1 Final) == */
     /* ================================================================== */
     .container {
         width: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px;
     }
-    /* ▼▼▼ [수정] Editor 내부 각 기능 상자의 테두리를 제거하고 구분선으로 변경 ▼▼▼ */
     .section {
-        background-color: transparent; /* 배경색 제거 */
-        padding: 12px 2px; /* 상하 여백만 유지 */
-        border: none; /* 테두리 완전 제거 */
-        border-bottom: 1px solid #f1f3f5; /* 아래쪽에 옅은 구분선 추가 */
-        border-radius: 0; /* 모서리 둥글게 하는 것 제거 */
+        background-color: var(--section-inner-background);
+        padding: 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
         flex-shrink: 0;
-        box-shadow: none; /* 그림자 제거 */
     }
-    .section:last-of-type {
-        border-bottom: none; /* 마지막 섹션의 구분선은 제거 */
-    }
-
     .form-group { display: flex; align-items: center; width: 100%; }
     .form-group label { margin-right: 8px; color: var(--text-secondary-color); flex-shrink: 0; font-size: 12px; }
     .form-group input, .form-group select {
@@ -166,12 +163,13 @@
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
     #docTitle { flex-grow: 1; }
-    .global-settings-grid { 
-        display: flex; flex-direction: column; align-items: flex-start; 
-        gap: 8px; max-height: 58px; overflow-y: auto; padding-right: 10px; 
+    .global-settings-grid, .syntax-buttons-wrapper {
+        display: flex; flex-wrap: wrap; 
+        gap: 8px; max-height: 72px; overflow-y: auto; padding-right: 10px;
     }
-
-    .syntax-buttons-wrapper { display: flex; flex-wrap: wrap; gap: 5px; max-height: 58px; overflow-y: auto; padding-right: 5px;}
+     .global-settings-grid {
+        flex-direction: column; align-items: flex-start;
+    }
     .syntax-buttons-wrapper button { padding: 4px 8px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; transition: filter 0.2s; }
     .syntax-buttons-wrapper button:hover { filter: brightness(1.15); }
     .syntax-buttons-wrapper button.group1 { background-color: #0056b3; }
@@ -197,13 +195,11 @@
         outline: none; border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
-    .main-editor-area, .section[style*="min-height"] { 
-        flex-grow: 1; display: flex; flex-direction: column; 
-        min-height: 200px; 
-        padding: 0;
-        border: none;
-        background-color: transparent;
-        box-shadow: none;
+    .main-editor-area {
+        flex-grow: 1; display: flex; flex-direction: column; min-height: 200px;
+    }
+    .section[style*="min-height"] {
+        flex-grow: 1; display: flex; flex-direction: column;
     }
     
     .action-buttons { 
