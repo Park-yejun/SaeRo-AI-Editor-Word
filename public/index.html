@@ -172,14 +172,20 @@
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
     #docTitle { flex-grow: 1; }
+
     .global-settings-grid, .syntax-buttons-wrapper {
         display: flex;
-        flex-wrap: nowrap; /* 한 줄로만 표시 (줄바꿈 없음) */
-        gap: 4px;
-        overflow-x: auto;  /* 내용이 넘칠 경우 가로 스크롤 표시 */
-        padding-bottom: 10px; /* 스크롤바 공간 확보 */
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 10px;
     }
-    .global-settings-grid {align-items: flex-start;}
+    .global-settings-grid {
+        gap: 16px; /* 설정 항목 사이의 간격을 16px로 늘립니다 */
+        align-items: center;
+    }
+    .syntax-buttons-wrapper {
+        gap: 4px; /* 버튼 사이 간격은 4px로 유지 */
+    }    
 
     .global-settings-grid .form-group input,
     .global-settings-grid .form-group select {
@@ -187,7 +193,7 @@
     }
     
     .syntax-buttons-wrapper button { 
-        padding: 8px 12px; /* 크기 조정 */
+        padding: 4px 10px; /* 크기 조정 */
         font-size: 11px; 
         color: white; 
         border: none; 
@@ -198,7 +204,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        min-width: 120px; /* 최소 너비 설정 */
+        min-width: 90px; /* 최소 너비 설정 */
     }
 
     .syntax-buttons-wrapper .button-text {
@@ -335,43 +341,43 @@ function getEditorHtml() {
         </div>
         <div class="section">
             <div class="syntax-buttons-wrapper">
-                <button class="group1" onclick="insertSyntax('{제목1.1}')" title="Alt+1"><span class="button-text">{제목1.1}</span><small>[Alt+1]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목1.2}')" title="Alt+2"><span class="button-text">{제목1.2}</span><small>[Alt+2]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목1.3}')" title="Alt+3"><span class="button-text">{제목1.3}</span><small>[Alt+3]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목2.1}')" title="Alt+4"><span class="button-text">{제목2.1}</span><small>[Alt+4]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목2.2}')" title="Alt+5"><span class="button-text">{제목2.2}</span><small>[Alt+5]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목2.3}')" title="Alt+6"><span class="button-text">{제목2.3}</span><small>[Alt+6]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목3.1}')" title="Alt+7"><span class="button-text">{제목3.1}</span><small>[Alt+7]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목3.2}')" title="Alt+8"><span class="button-text">{제목3.2}</span><small>[Alt+8]</small></button>
-                <button class="group1" onclick="insertSyntax('{제목3.3}')" title="Alt+9"><span class="button-text">{제목3.3}</span><small>[Alt+9]</small></button>
-                <button class="group2" onclick="insertSyntax('{왼쪽}')" title="Alt+Q"><span class="button-text">{왼쪽}</span><small>[Alt+Q]</small></button>
-                <button class="group2" onclick="insertSyntax('{가운데}')" title="Alt+W"><span class="button-text">{가운데}</span><small>[Alt+W]</small></button>
-                <button class="group2" onclick="insertSyntax('{오른쪽}')" title="Alt+E"><span class="button-text">{오른쪽}</span><small>[Alt+E]</small></button>
-                <button class="group2" onclick="insertSyntax('{양쪽}')" title="Alt+R"><span class="button-text">{양쪽}</span><small>[Alt+R]</small></button>
-                <button class="group2" onclick="insertSyntax('{균등}')" title="Alt+T"><span class="button-text">{균등}</span><small>[Alt+T]</small></button>
-                <button class="group2" onclick="insertSyntax('{10pt}')" title="Alt+Y"><span class="button-text">{10pt}</span><small>[Alt+Y]</small></button>
-                <button class="group2" onclick="insertSyntax('{1줄}')" title="Alt+U"><span class="button-text">{1줄}</span><small>[Alt+U]</small></button>
-                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:0.5}')" title="Alt+I"><span class="button-text">{들여쓰기...}</span><small>[Alt+I]</small></button>
-                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:1,2번줄이하:1}')" title="Alt+O"><span class="button-text">{들여쓰기...}</span><small>[Alt+O]</small></button>
-                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0,2번줄이하:0.5}')" title="Alt+P"><span class="button-text">{들여쓰기...}</span><small>[Alt+P]</small></button>
-                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:1}')" title="Alt+["><span class="button-text">{들여쓰기...}</span><small>[Alt+[ ]</small></button>
-                <button class="group3" onclick="insertSyntax('{진하게}')" title="Alt+A"><span class="button-text">{진하게}</span><small>[Alt+A]</small></button>
-                <button class="group3" onclick="insertSyntax('{밑줄}')" title="Alt+S"><span class="button-text">{밑줄}</span><small>[Alt+S]</small></button>
-                <button class="group3" onclick="insertSyntax('{>>}')" title="Alt+D"><span class="button-text">{>>}</span><small>[Alt+D]</small></button>
-                <button class="group3" onclick="insertSyntax('{<<}')" title="Alt+F"><span class="button-text">{<<}</span><small>[Alt+F]</small></button>
-                <button class="group3" onclick="insertSyntax('{탭}')" title="Alt+G"><span class="button-text">{탭}</span><small>[Alt+G]</small></button>
-                <button class="group3" onclick="insertSyntax('{줄바꿈}')" title="Alt+H"><span class="button-text">{줄바꿈}</span><small>[Alt+H]</small></button>
-                <button class="group3" onclick="insertSyntax('{문단바꿈}')" title="Alt+J"><span class="button-text">{문단바꿈}</span><small>[Alt+J]</small></button>
-                <button class="group3" onclick="insertSyntax('{페이지바꿈}')" title="Alt+K"><span class="button-text">{페이지바꿈}</span><small>[Alt+K]</small></button>
-                <button class="group4" onclick="insertSyntax('{표시작1,글꼴=??,크기=#}')" title="Alt+Z"><span class="button-text">{표시작1...}</span><small>[Alt+Z]</small></button>
-                <button class="group4" onclick="insertSyntax('{표시작1,테두리없음}')" title="Alt+X"><span class="button-text">{표시작1,테두리없음}</span><small>[Alt+X]</small></button>
-                <button class="group4" onclick="insertSyntax('{표끝1}')" title="Alt+C"><span class="button-text">{표끝1}</span><small>[Alt+C]</small></button>
-                <button class="group4" onclick="insertSyntax('{표시작2,글꼴=??,크기=#}')" title="Alt+V"><span class="button-text">{표시작2...}</span><small>[Alt+V]</small></button>
-                <button class="group4" onclick="insertSyntax('{표끝2}')" title="Alt+B"><span class="button-text">{표끝2}</span><small>[Alt+B]</small></button>
-                <button class="group4" onclick="insertSyntax('{제목행}')" title="Alt+N"><span class="button-text">{제목행}</span><small>[Alt+N]</small></button>
-                <button class="group4" onclick="insertSyntax('{회색}')" title="Alt+M"><span class="button-text">{회색}</span><small>[Alt+M]</small></button>
-                <button class="group4" onclick="insertSyntax('{남색}')" title="Alt+,"><span class="button-text">{남색}</span><small>[Alt+,]</small></button>
-                <button class="group4" onclick="insertSyntax('{그림:~}')" title="Alt+."><span class="button-text">{그림:~}</span><small>[Alt+.]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목1.1}')" title="{제목1.1}"><span class="button-text">{제목1.1}</span><small>[Alt+1]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목1.2}')" title="{제목1.2}"><span class="button-text">{제목1.2}</span><small>[Alt+2]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목1.3}')" title="{제목1.3}"><span class="button-text">{제목1.3}</span><small>[Alt+3]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목2.1}')" title="{제목2.1}"><span class="button-text">{제목2.1}</span><small>[Alt+4]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목2.2}')" title="{제목2.2}"><span class="button-text">{제목2.2}</span><small>[Alt+5]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목2.3}')" title="{제목2.3}"><span class="button-text">{제목2.3}</span><small>[Alt+6]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목3.1}')" title="{제목3.1}"><span class="button-text">{제목3.1}</span><small>[Alt+7]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목3.2}')" title="{제목3.2}"><span class="button-text">{제목3.2}</span><small>[Alt+8]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목3.3}')" title="{제목3.3}"><span class="button-text">{제목3.3}</span><small>[Alt+9]</small></button>
+                <button class="group2" onclick="insertSyntax('{왼쪽}')" title="{왼쪽}"><span class="button-text">{왼쪽}</span><small>[Alt+Q]</small></button>
+                <button class="group2" onclick="insertSyntax('{가운데}')" title="{가운데}"><span class="button-text">{가운데}</span><small>[Alt+W]</small></button>
+                <button class="group2" onclick="insertSyntax('{오른쪽}')" title="{오른쪽}"><span class="button-text">{오른쪽}</span><small>[Alt+E]</small></button>
+                <button class="group2" onclick="insertSyntax('{양쪽}')" title="{양쪽}"><span class="button-text">{양쪽}</span><small>[Alt+R]</small></button>
+                <button class="group2" onclick="insertSyntax('{균등}')" title="{균등}"><span class="button-text">{균등}</span><small>[Alt+T]</small></button>
+                <button class="group2" onclick="insertSyntax('{10pt}')" title="{10pt}"><span class="button-text">{10pt}</span><small>[Alt+Y]</small></button>
+                <button class="group2" onclick="insertSyntax('{1줄}')" title="{1줄}"><span class="button-text">{1줄}</span><small>[Alt+U]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:0.5}')" title="{들여쓰기,1번줄:0.5,2번줄이하:0.5}"><span class="button-text">{들여쓰기...}</span><small>[Alt+I]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:1,2번줄이하:1}')" title="{들여쓰기,1번줄:1,2번줄이하:1}"><span class="button-text">{들여쓰기...}</span><small>[Alt+O]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0,2번줄이하:0.5}')" title="{들여쓰기,1번줄:0,2번줄이하:0.5}"><span class="button-text">{들여쓰기...}</span><small>[Alt+P]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:1}')" title="{들여쓰기,1번줄:0.5,2번줄이하:1}"><span class="button-text">{들여쓰기...}</span><small>[Alt+[ ]</small></button>
+                <button class="group3" onclick="insertSyntax('{진하게}')" title="{진하게}"><span class="button-text">{진하게}</span><small>[Alt+A]</small></button>
+                <button class="group3" onclick="insertSyntax('{밑줄}')" title="{밑줄}"><span class="button-text">{밑줄}</span><small>[Alt+S]</small></button>
+                <button class="group3" onclick="insertSyntax('{>>}')" title="{>>}"><span class="button-text">{>>}</span><small>[Alt+D]</small></button>
+                <button class="group3" onclick="insertSyntax('{<<}')" title="{<<}"><span class="button-text">{<<}</span><small>[Alt+F]</small></button>
+                <button class="group3" onclick="insertSyntax('{탭}')" title="{탭}"><span class="button-text">{탭}</span><small>[Alt+G]</small></button>
+                <button class="group3" onclick="insertSyntax('{줄바꿈}')" title="{줄바꿈}"><span class="button-text">{줄바꿈}</span><small>[Alt+H]</small></button>
+                <button class="group3" onclick="insertSyntax('{문단바꿈}')" title="{문단바꿈}"><span class="button-text">{문단바꿈}</span><small>[Alt+J]</small></button>
+                <button class="group3" onclick="insertSyntax('{페이지바꿈}')" title="{페이지바꿈}"><span class="button-text">{페이지바꿈}</span><small>[Alt+K]</small></button>
+                <button class="group4" onclick="insertSyntax('{표시작1,글꼴=??,크기=#}')" title="{표시작1,글꼴=??,크기=#}"><span class="button-text">{표시작1...}</span><small>[Alt+Z]</small></button>
+                <button class="group4" onclick="insertSyntax('{표시작1,테두리없음}')" title="{표시작1,테두리없음}"><span class="button-text">{표시작1,테두리없음}</span><small>[Alt+X]</small></button>
+                <button class="group4" onclick="insertSyntax('{표끝1}')" title="{표끝1}"><span class="button-text">{표끝1}</span><small>[Alt+C]</small></button>
+                <button class="group4" onclick="insertSyntax('{표시작2,글꼴=??,크기=#}')" title="{표시작2,글꼴=??,크기=#}"><span class="button-text">{표시작2...}</span><small>[Alt+V]</small></button>
+                <button class="group4" onclick="insertSyntax('{표끝2}')" title="{표끝2}"><span class="button-text">{표끝2}</span><small>[Alt+B]</small></button>
+                <button class="group4" onclick="insertSyntax('{제목행}')" title="{제목행}"><span class="button-text">{제목행}</span><small>[Alt+N]</small></button>
+                <button class="group4" onclick="insertSyntax('{회색}')" title="{회색}"><span class="button-text">{회색}</span><small>[Alt+M]</small></button>
+                <button class="group4" onclick="insertSyntax('{남색}')" title="{남색}"><span class="button-text">{남색}</span><small>[Alt+,]</small></button>
+                <button class="group5" onclick="insertSyntax('{그림:~}')" title="{그림:~}"><span class="button-text">{그림:~}</span><small>[Alt+.]</small></button>
             </div>
         </div>
 
