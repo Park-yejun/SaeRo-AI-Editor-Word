@@ -160,7 +160,7 @@
         flex-shrink: 0;
     }
     
-    .form-group { display: flex; align-items: center; width: 100%; }
+    .form-group { display: flex; align-items: center; width: auto; }
     .form-group label { margin-right: 8px; color: var(--text-secondary-color); flex-shrink: 0; font-size: 12px; }
     .form-group input, .form-group select {
         padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px; 
@@ -176,9 +176,7 @@
         display: flex; flex-wrap: wrap; 
         gap: 8px; max-height: 72px; overflow-y: auto; padding-right: 10px;
     }
-     .global-settings-grid {
-        flex-direction: column; align-items: flex-start;
-    }
+    .global-settings-grid {align-items: flex-start;}
     .syntax-buttons-wrapper button { padding: 4px 8px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; transition: filter 0.2s; }
     .syntax-buttons-wrapper button:hover { filter: brightness(1.15); }
     .syntax-buttons-wrapper button.group1 { background-color: #0056b3; }
