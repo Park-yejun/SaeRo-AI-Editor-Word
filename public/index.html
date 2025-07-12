@@ -9,62 +9,103 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
 <style>
+    /* ================================================================== */
+    /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v3.2 Final) == */
+    /* ================================================================== */
+    :root {
+        --primary-color: #007bff;
+        --secondary-color: #5a6268;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --border-color: #dee2e6;
+        --background-color: #f8f9fa;
+        --section-background: #ffffff;
+        --text-color: #212529;
+        --text-secondary-color: #495057;
+        --font-family-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
 
+    html { box-sizing: border-box; }
+    *, *:before, *:after { box-sizing: inherit; }
+    html, body {
+        margin: 0; padding: 0; height: 100%;
+        font-family: var(--font-family-main);
+        background-color: var(--background-color);
+        color: var(--text-color);
+        overflow: hidden;
+    }
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    .Section1 {
+        height: 45px;
+        background-color: var(--section-background);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .brand-logo { font-weight: bold; color: #c62828; font-size: 1.2em; }
+    .brand-highlight { color: black; }
+    .user-info { font-size: 0.9em; color: var(--text-secondary-color); }
+    
+    .content-container {
+        flex-grow: 1;
+        display: flex;
+        padding: 12px;
+        gap: 12px;
+        overflow: hidden;
+    }
+    .content-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background-color: var(--section-background);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
     /* ================================================================== */
     /* == 탭 시스템 스타일 (Redesigned by Gemini v3.2 Final) == */
     /* ================================================================== */
-    
-    /* 탭의 내용이 표시되는 영역 */
     .tab-content-area {
         flex: 1;
         margin-top: 10px;
         display: flex;
-        padding: 0 10px; 
+        padding: 0 10px 10px 10px;
+        overflow: hidden;
     }
     .tab-content-pane { display: none; }
     .tab-content-pane.active {
-        display: block;
+        display: flex; /* flex로 변경하여 내부 .container가 높이를 100% 채우도록 함 */
+        flex-direction: column;
         flex: 1;
         overflow-y: auto;
-        padding-top: 5px;
     }
-    
-    /* 탭 버튼들이 있는 전체 바 */
     .tab-bar {
         height: 40px;
         background-color: transparent;
         display: flex;
         flex-shrink: 0;
-        /* ▼▼▼ [수정 1] 탭과 내용 사이의 구분선을 만들기 위해 기존 border-bottom 제거 ▼▼▼ */
-        /* border-bottom: 1px solid var(--border-color); */ 
+        border-bottom: 1px solid var(--border-color); 
         padding: 0 10px;
-        position: relative; /* 탭 컨트롤 버튼의 위치 기준점 */
     }
-    
-    /* ▼▼▼ [추가] 탭과 내용 사이에 얇은 실선 추가 ▼▼▼ */
-    .tab-bar::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 10px;
-        right: 10px;
-        height: 1px;
-        background-color: var(--border-color);
-        z-index: 1; /* 탭보다 아래에 위치 */
-    }
-    
-    /* 탭 목록 (tab1, tab2 ...) */
     .tab-list { 
         display: flex; 
         flex: 1; 
-        overflow: hidden; 
+        overflow: hidden;
         white-space: nowrap; 
-        align-items: center; 
+        align-items: center;
     }
     .tab-list::-webkit-scrollbar { display: none; }
     .tab-list { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* 개별 탭 버튼 */
+
     .tab { 
         padding: 8px 12px; 
         cursor: pointer; 
@@ -75,27 +116,23 @@
         flex-shrink: 0;
         border-radius: 6px; 
         margin-right: 5px;
-        position: relative; /* z-index를 위해 추가 */
-        z-index: 2; /* 구분선보다 위에 위치 */
+        border-bottom-left-radius: 0; /* 아래쪽 모서리 각 제거 */
+        border-bottom-right-radius: 0;
     }
     .tab:hover { 
         background-color: #e9ecef;
         color: var(--text-color); 
     }
     .tab.active { 
-        background-color: var(--primary-color);
-        color: white;
+        background-color: var(--section-background);
+        border-color: var(--border-color);
+        border-bottom-color: var(--section-background); /* 아래쪽 테두리만 배경색과 동일하게 */
         font-weight: 600; 
-    }
-    
-    /* 탭 컨트롤 버튼(<, +, >) */
-    .tab-controls { 
-        display: flex; 
-        align-items: center; 
-        /* ▼▼▼ [수정 2] 버튼들을 위로 4px 올리기 위해 position 추가 ▼▼▼ */
+        color: var(--text-color);
         position: relative;
-        top: -4px;
+        margin-bottom: -1px; /* 아래 선과 겹치도록 */
     }
+    .tab-controls { display: flex; align-items: center; }
     .tab-nav-button { 
         padding: 0 10px; height: 28px; display: flex; align-items: center; justify-content: center; 
         background-color: #fff; border: 1px solid var(--border-color); cursor: pointer; 
@@ -103,24 +140,23 @@
     }
     .tab-nav-button:hover { background-color: #e9ecef; }
     .close-tab { margin-left: 8px; font-size: 14px; line-height: 1; padding: 2px; border-radius: 50%; }
-    .close-tab:hover { background-color: rgba(255,255,255,0.3); }
-    
-    /* 탭 이름 수정용 입력창 */
+    .close-tab:hover { background-color: #dee2e6; }
     .tab-edit-input { border: 1px solid var(--primary-color); outline: none; padding: 1px 3px; width: 80px; font-family: inherit; font-size: inherit; border-radius: 3px; }
 
     /* ================================================================== */
-    /* == 편집기 내부 스타일 (Redesigned by Gemini v3.1 Final) == */
+    /* == 편집기 내부 스타일 (Redesigned by Gemini v3.2 Final) == */
     /* ================================================================== */
     .container {
         width: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px;
     }
     .section {
-        background-color: var(--section-inner-background);
+        background-color: #f8f9fa;
         padding: 12px;
         border: 1px solid #e9ecef;
         border-radius: 8px;
         flex-shrink: 0;
     }
+    
     .form-group { display: flex; align-items: center; width: 100%; }
     .form-group label { margin-right: 8px; color: var(--text-secondary-color); flex-shrink: 0; font-size: 12px; }
     .form-group input, .form-group select {
@@ -165,18 +201,16 @@
         outline: none; border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
-    .main-editor-area {
-        flex-grow: 1; display: flex; flex-direction: column; min-height: 200px;
-    }
-    .section[style*="min-height"] {
-        flex-grow: 1; display: flex; flex-direction: column;
-    }
+    /* ▼▼▼ [수정] 텍스트 입력창을 감싸는 컨테이너 스타일 복원 ▼▼▼ */
+    .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; }
+    .section[style*="min-height"] { flex-grow: 1; display: flex; flex-direction: column; }
     
     .action-buttons { 
         display: flex; justify-content: flex-end; gap: 8px; 
-        margin-top: auto; /* 버튼들을 항상 아래에 고정 */
+        margin-top: auto;
         padding-top: 10px;
         flex-wrap: nowrap;
+        flex-shrink: 0;
     } 
     .action-buttons button { 
         padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; 
