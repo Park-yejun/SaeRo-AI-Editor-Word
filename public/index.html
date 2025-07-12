@@ -10,35 +10,26 @@
 
 <style>
     /* ================================================================== */
-    /* == 기본 및 전체 레이아웃 (Redesigned by Gemini) == */
+    /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v2.1) == */
     /* ================================================================== */
     :root {
-        --primary-color: #4A90E2;      /* 주요 색상 (소프트 블루) */
-        --primary-hover-color: #357ABD;
-        --secondary-color: #4a4a4a;     /* 보조 색상 (다크 그레이) */
-        --secondary-hover-color: #333333;
-        --danger-color: #D0021B;       /* 위험/삭제 색상 (레드) */
-        --danger-hover-color: #a80015;
-        --warning-color: #F5A623;      /* 경고/저장 색상 (옐로우) */
-        --warning-hover-color: #c8871e;
-        --border-color: #e2e8f0;       /* 테두리 색상 (연한 그레이) */
-        --background-color: #f8f9fa;   /* 페이지 배경 색상 */
+        --primary-color: #007bff;      /* 주요 색상 (선명한 블루) */
+        --secondary-color: #5a6268;     /* 보조 색상 (중간 톤 그레이) */
+        --danger-color: #dc3545;       /* 위험/삭제 색상 (레드) */
+        --warning-color: #ffc107;      /* 경고/저장 색상 (옐로우) */
+        --border-color: #ced4da;       /* 테두리 색상 (더 진한 그레이) */
+        --background-color: #f1f3f5;   /* 페이지 배경 색상 (조금 더 진하게) */
         --section-background: #ffffff; /* 섹션 배경 색상 (흰색) */
-        --text-color: #333333;         /* 기본 텍스트 색상 */
-        --text-secondary-color: #666;  /* 보조 텍스트 색상 */
+        --section-inner-background: #f8f9fa; /* 섹션 내부 배경 */
+        --text-color: #212529;         /* 기본 텍스트 색상 (더 진하게) */
+        --text-secondary-color: #495057;  /* 보조 텍스트 색상 */
         --font-family-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    html {
-        box-sizing: border-box;
-    }
-    *, *:before, *:after {
-        box-sizing: inherit;
-    }
+    html { box-sizing: border-box; }
+    *, *:before, *:after { box-sizing: inherit; }
     html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
+        margin: 0; padding: 0; height: 100%;
         font-family: var(--font-family-main);
         background-color: var(--background-color);
         color: var(--text-color);
@@ -50,98 +41,79 @@
         height: 100vh;
     }
     .Section1 {
-        height: 1cm;
+        height: 45px; /* cm 대신 px 사용 */
         background-color: var(--section-background);
         border-bottom: 1px solid var(--border-color);
         padding: 0 20px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between; /* 로고와 사용자 정보 양쪽 정렬 */
         align-items: center;
         flex-shrink: 0;
     }
     .brand-logo { font-weight: bold; color: #c62828; font-size: 1.2em; }
     .brand-highlight { color: black; }
-    .user-info { margin-left: 20px; font-size: 0.9em; color: var(--text-secondary-color); }
+    .user-info { font-size: 0.9em; color: var(--text-secondary-color); }
     
     .content-container {
         flex-grow: 1;
         display: flex;
-        padding: 15px;
-        gap: 15px;
+        padding: 12px;
+        gap: 12px;
         overflow: hidden;
     }
+    /* ▼▼▼ [업데이트] 3개의 큰 기능 섹션을 구분하는 스타일 ▼▼▼ */
     .content-column {
         flex: 1;
         display: flex;
         flex-direction: column;
         min-width: 0;
+        background-color: var(--section-background); /* 각 섹션에 흰 배경 적용 */
+        border: 1px solid var(--border-color);
+        border-radius: 10px; /* 부드러운 모서리 */
+        padding: 10px; /* 내부 여백 */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* 입체감을 위한 그림자 */
     }
     
     /* ================================================================== */
-    /* == 탭 시스템 스타일 (Redesigned by Gemini) == */
+    /* == 탭 시스템 스타일 (Redesigned by Gemini v2.1) == */
     /* ================================================================== */
     .tab-content-area {
         flex: 1;
-        border: 1px solid var(--border-color);
-        background-color: var(--section-background);
-        border-radius: 8px;
         margin-top: 10px;
         display: flex;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     .tab-content-pane { display: none; }
     .tab-content-pane.active {
         display: block;
         flex: 1;
         overflow-y: auto;
-        padding: 10px;
+        padding-top: 5px;
     }
     .tab-bar {
-        height: 40px; /* cm 대신 px 사용 */
+        height: 40px;
         background-color: transparent;
         display: flex;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 2px solid var(--border-color);
     }
     .tab-list { display: flex; flex: 1; overflow-x: auto; white-space: nowrap; align-items: flex-end; }
     .tab { 
-        padding: 10px 15px; 
-        cursor: pointer; 
-        background-color: transparent; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        flex-shrink: 0; 
-        border: 1px solid transparent;
-        border-bottom: none;
-        margin-right: 2px;
-        border-radius: 6px 6px 0 0;
+        padding: 10px 15px; cursor: pointer; background-color: transparent; 
+        border: none; border-bottom: 2px solid transparent;
         color: var(--text-secondary-color);
         transition: all 0.2s ease-in-out;
     }
-    .tab:hover {
-        background-color: #e9ecef;
-    }
+    .tab:hover { color: var(--primary-color); }
     .tab.active { 
-        background-color: var(--section-background); 
-        border-color: var(--border-color);
+        border-bottom: 2px solid var(--primary-color);
         font-weight: 600; 
         color: var(--primary-color);
     }
     .tab-controls { display: flex; align-items: center; }
     .tab-nav-button { 
-        padding: 0 12px; 
-        height: 30px;
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        background-color: #fff; 
-        border: 1px solid var(--border-color); 
-        cursor: pointer; 
-        font-size: 1.2em; 
-        color: var(--text-secondary-color);
-        border-radius: 6px;
-        margin-left: 5px;
+        padding: 0 12px; height: 30px; display: flex; align-items: center; justify-content: center; 
+        background-color: #f1f3f5; border: 1px solid var(--border-color); cursor: pointer; 
+        font-size: 1.2em; color: var(--text-secondary-color); border-radius: 6px; margin-left: 5px;
     }
     .tab-nav-button:hover { background-color: #e9ecef; }
     .close-tab { margin-left: 8px; font-size: 14px; line-height: 1; padding: 4px; border-radius: 50%; }
@@ -149,143 +121,113 @@
     .tab-edit-input { border: 1px solid var(--primary-color); outline: none; padding: 1px 3px; width: 80px; font-family: inherit; font-size: inherit; border-radius: 3px; }
 
     /* ================================================================== */
-    /* == 편집기 내부 스타일 (Redesigned by Gemini) == */
+    /* == 편집기 내부 스타일 (Redesigned by Gemini v2.1) == */
     /* ================================================================== */
     .container {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        width: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px;
     }
+     /* ▼▼▼ [업데이트] Editor 내부의 각 기능 상자 스타일 ▼▼▼ */
     .section {
-        background-color: var(--section-background);
-        padding: 12px 15px;
-        border: 1px solid var(--border-color);
+        background-color: var(--section-inner-background); /* 내부 섹션은 연한 회색 배경 */
+        padding: 12px;
+        border: 1px solid #e9ecef; /* 더 연한 테두리 */
         border-radius: 8px;
         flex-shrink: 0;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .form-group { display: flex; align-items: center; width: 100%; }
     .form-group label { margin-right: 8px; color: var(--text-secondary-color); flex-shrink: 0; font-size: 12px; }
     .form-group input, .form-group select {
-        padding: 6px 8px; 
-        border: 1px solid var(--border-color); 
-        border-radius: 6px; 
-        font-size: 12px; 
-        transition: border-color 0.2s, box-shadow 0.2s;
-        flex-grow: 1;
+        padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px; 
+        font-size: 12px; transition: border-color 0.2s, box-shadow 0.2s;
     }
     .form-group input:focus, .form-group select:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
-
+    #docTitle { flex-grow: 1; }
     .global-settings-grid { 
-        display: flex; 
-        flex-direction: column; 
-        align-items: flex-start; 
-        gap: 8px; 
-        max-height: 58px; 
-        overflow-y: auto; 
-        padding-right: 10px; 
+        display: flex; flex-direction: column; align-items: flex-start; 
+        gap: 8px; max-height: 58px; overflow-y: auto; padding-right: 10px; 
     }
 
-    .syntax-buttons-wrapper { display: flex; flex-wrap: wrap; gap: 6px; max-height: 58px; overflow-y: auto; padding-right: 5px; }
-    .syntax-buttons-wrapper button { padding: 4px 8px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; transition: transform 0.1s, filter 0.2s; }
-    .syntax-buttons-wrapper button:hover { filter: brightness(1.1); }
-    .syntax-buttons-wrapper button:active { transform: scale(0.95); }
-    .syntax-buttons-wrapper button small { font-size: 0.85em; opacity: 0.8; margin-left: 4px;}
-    .syntax-buttons-wrapper button.group1 { background-color: #4A90E2; }
-    .syntax-buttons-wrapper button.group2 { background-color: #50E3C2; }
-    .syntax-buttons-wrapper button.group3 { background-color: #B8E986; color: #212529;}
-    .syntax-buttons-wrapper button.group4 { background-color: #7ED321; }
-    .syntax-buttons-wrapper button.group5 { background-color: #9013FE; } 
+    .syntax-buttons-wrapper { display: flex; flex-wrap: wrap; gap: 5px; max-height: 58px; overflow-y: auto; padding-right: 5px;}
+    .syntax-buttons-wrapper button { padding: 4px 8px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; transition: filter 0.2s; }
+    .syntax-buttons-wrapper button:hover { filter: brightness(1.15); }
+    .syntax-buttons-wrapper button.group1 { background-color: #007bff; }
+    .syntax-buttons-wrapper button.group2 { background-color: #17a2b8; }
+    .syntax-buttons-wrapper button.group3 { background-color: #28a745; }
+    .syntax-buttons-wrapper button.group4 { background-color: #ffc107; color: #212529; }
+    .syntax-buttons-wrapper button.group5 { background-color: #6f42c1; } 
 
     .simple-find-replace-bar { display: flex; flex-direction: column; gap: 8px; }
     .find-replace-inputs { display: flex; gap: 10px; width: 100%; align-items: center; }
     .find-replace-inputs label { display: flex; align-items: center; gap: 5px; font-size: 12px; }
     .find-replace-inputs input { width: 200px }
     .find-replace-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
-    .syntax-button-like { background-color: #f0f2f5; border: 1px solid var(--border-color); border-radius: 6px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; transition: background-color 0.2s; }
-    .syntax-button-like:hover { background-color: #e4e6eb; }
+    .syntax-button-like { background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; transition: background-color 0.2s; }
+    .syntax-button-like:hover { background-color: #f1f3f5; }
 
     #mainTextArea, #memoTextArea { 
-        width: 100%; 
-        height: 100%; 
-        border: 1px solid var(--border-color); 
-        resize: none; 
-        font-size: 14px; 
-        line-height: 1.6; 
-        padding: 10px;
+        width: 100%; height: 100%; border: 1px solid var(--border-color); 
+        resize: none; font-size: 14px; line-height: 1.6; padding: 12px;
         border-radius: 8px;
-        transition: border-color 0.2s, box-shadow 0.2s;
     }
     #mainTextArea:focus, #memoTextArea:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        outline: none; border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
-    .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; min-height: 200px; }
-
-    .action-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; flex-wrap: nowrap; } 
+    .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; min-height: 200px; padding: 0; }
+    
+    .action-buttons { 
+        display: flex; justify-content: flex-end; gap: 8px; 
+        margin-top: 0; flex-wrap: nowrap; padding: 10px; 
+        background-color: var(--section-inner-background); 
+        border: 1px solid #e9ecef; border-radius: 8px; 
+    } 
     .action-buttons button { 
-        padding: 8px 16px; 
-        border: none; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-weight: 600; 
-        font-size: 13px;
-        transition: all 0.2s ease-in-out;
-        white-space: nowrap;
+        padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; 
+        font-weight: 600; font-size: 13px; transition: all 0.2s ease-in-out; white-space: nowrap;
     }
-    .action-buttons button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+    .action-buttons button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .action-buttons .open-drive { background-color: var(--primary-color); color: white; }
     .action-buttons .load-file { background-color: var(--secondary-color); color: white; } 
-    .action-buttons .save-draft { background-color: var(--warning-color); color: white; }
+    .action-buttons .save-draft { background-color: var(--warning-color); color: black; }
     .action-buttons .create-doc { background-color: #28a745; color: white; }
     .action-buttons .delete-all { background-color: var(--danger-color); color: white; }
-
+    
     /* ================================================================== */
-    /* == 커스텀 팝업 스타일 (Redesigned by Gemini) == */
+    /* == 커스텀 팝업 스타일 (Redesigned by Gemini v2.1) == */
     /* ================================================================== */
-    .modal-overlay, .custom-alert-popup {
+    .custom-alert-popup {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background-color: rgba(0, 0, 0, 0.4); 
+        background-color: rgba(33, 37, 41, 0.6); /* 반투명 배경 더 진하게 */
         display: flex; justify-content: center; align-items: center; 
         z-index: 1000;
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(5px);
     }
-    .modal-content, .custom-alert-content {
+    .custom-alert-content {
         background-color: #fff; 
         padding: 30px; 
         border-radius: 12px; 
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
         text-align: center;
         min-width: 320px;
     }
-    .modal-content p, .custom-alert-content p { margin: 0 0 25px 0; font-size: 1.1em; color: #333; }
-    .modal-content button, .custom-alert-content button {
-        padding: 10px 25px; 
-        border: 1px solid var(--border-color); 
-        border-radius: 6px; 
-        background-color: #f0f2f5; 
-        cursor: pointer; font-size: 1em; 
-        transition: background-color 0.2s; 
+    .custom-alert-content p { margin: 0 0 25px 0; font-size: 1.1em; color: var(--text-color); }
+    .custom-alert-content button {
+        padding: 10px 25px; border: 1px solid var(--border-color); border-radius: 6px; 
+        background-color: #f8f9fa; cursor: pointer; font-size: 1em; transition: all 0.2s; 
     }
     .custom-alert-content .button-group button { margin: 0 8px; }
-    .modal-content button:hover, .custom-alert-content button:hover { background-color: #e4e6eb; }
+    .custom-alert-content button:hover { background-color: #f1f3f5; border-color: #adb5bd; }
+    #customConfirmOkButton { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+    #customConfirmOkButton:hover { background-color: var(--primary-hover-color); border-color: var(--primary-hover-color); }
 
-    /* ================================================================== */
-    /* == 바닥글 스타일 (Redesigned by Gemini) == */
-    /* ================================================================== */
+
     .Section3 {
-        height: 30px; /* cm 대신 px 사용 */
-        background-color: var(--section-background);
+        height: 30px;
+        background-color: var(--background-color);
         border-top: 1px solid var(--border-color);
         padding: 0 20px;
         font-size: 11px;
@@ -317,6 +259,9 @@
 
 
 <script>
+// JavaScript 코드는 이전과 동일합니다.
+// 여기에 기존의 script 태그 안의 모든 내용을 그대로 붙여넣으시면 됩니다.
+
 const userName = "박예준2";
 const userPhone = "010-9876-5432";
 document.getElementById('user-name').textContent = userName;
