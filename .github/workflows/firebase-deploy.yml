@@ -1,4 +1,4 @@
-# 파일 이름: .github/workflows/firebase-deploy.yml (최종 수정본)
+# 파일 이름: .github/workflows/firebase-deploy.yml (직접 명령어 실행 방식)
 
 name: Deploy Frontend and Backend
 
@@ -19,23 +19,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Google Cloud에 인증합니다. (따옴표 제거)
+      # 2. Google Cloud에 인증합니다.
       - name: Authenticate to Google Cloud
-        id: auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
 
-      # 3. 백엔드를 Google Cloud Run에 배포합니다. (따옴표 제거)
+      # 3. 🚀 백엔드를 Google Cloud Run에 배포합니다. (명령어 직접 실행)
       - name: Deploy Backend to Cloud Run
-        id: deploy-run
-        uses: google-github-actions/deploy-run@v2
-        with:
-          service: sraieditor20250711
-          region: asia-northeast3
-          source: .
+        run: |
+          gcloud run deploy sraieditor20250711 \
+            --source . \
+            --region asia-northeast3 \
+            --project sraieditor20250711 \
+            --allow-unauthenticated
 
-      # 4. 프론트엔드를 Firebase Hosting에 배포합니다. (따옴표 제거)
+      # 4. 프론트엔드를 Firebase Hosting에 배포합니다.
       - name: Deploy Frontend to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
