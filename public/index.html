@@ -12,18 +12,19 @@
     /* ================================================================== */
     /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v2.1) == */
     /* ================================================================== */
+
     :root {
-        --primary-color: #007bff;      /* 주요 색상 (선명한 블루) */
-        --secondary-color: #5a6268;     /* 보조 색상 (중간 톤 그레이) */
-        --danger-color: #dc3545;       /* 위험/삭제 색상 (레드) */
-        --warning-color: #ffc107;      /* 경고/저장 색상 (옐로우) */
-        --border-color: #ced4da;       /* 테두리 색상 (더 진한 그레이) */
-        --background-color: #f1f3f5;   /* 페이지 배경 색상 (조금 더 진하게) */
-        --section-background: #ffffff; /* 섹션 배경 색상 (흰색) */
-        --section-inner-background: #f8f9fa; /* 섹션 내부 배경 */
-        --text-color: #212529;         /* 기본 텍스트 색상 (더 진하게) */
-        --text-secondary-color: #495057;  /* 보조 텍스트 색상 */
-        --font-family-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --primary-color: #007bff;
+    --secondary-color: #5a6268;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --border-color: #adb5bd;       /* 테두리 색상: 더 진하게 수정 */
+    --background-color: #e9ecef;   /* 페이지 배경 색상: 더 진하게 수정 */
+    --section-background: #ffffff;
+    --section-inner-background: #f1f3f5; /* 섹션 내부 배경: 기존 배경색으로 설정하여 구분감 부여 */
+    --text-color: #212529;
+    --text-secondary-color: #343a40;  /* 보조 텍스트 색상: 더 진하게 수정 */
+    --font-family-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     html { box-sizing: border-box; }
@@ -154,12 +155,11 @@
     .syntax-buttons-wrapper { display: flex; flex-wrap: wrap; gap: 5px; max-height: 58px; overflow-y: auto; padding-right: 5px;}
     .syntax-buttons-wrapper button { padding: 4px 8px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; transition: filter 0.2s; }
     .syntax-buttons-wrapper button:hover { filter: brightness(1.15); }
-    .syntax-buttons-wrapper button.group1 { background-color: #007bff; }
-    .syntax-buttons-wrapper button.group2 { background-color: #17a2b8; }
-    .syntax-buttons-wrapper button.group3 { background-color: #28a745; }
-    .syntax-buttons-wrapper button.group4 { background-color: #ffc107; color: #212529; }
-    .syntax-buttons-wrapper button.group5 { background-color: #6f42c1; } 
-
+    .syntax-buttons-wrapper button.group1 { background-color: #0056b3; }
+    .syntax-buttons-wrapper button.group2 { background-color: #138496; }
+    .syntax-buttons-wrapper button.group3 { background-color: #1e7e34; }
+    .syntax-buttons-wrapper button.group4 { background-color: #d39e00; color: white; }
+    .syntax-buttons-wrapper button.group5 { background-color: #563d7c; }
     .simple-find-replace-bar { display: flex; flex-direction: column; gap: 8px; }
     .find-replace-inputs { display: flex; gap: 10px; width: 100%; align-items: center; }
     .find-replace-inputs label { display: flex; align-items: center; gap: 5px; font-size: 12px; }
@@ -177,7 +177,7 @@
         outline: none; border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
-    .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; min-height: 200px; padding: 0; }
+    .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; min-height: 200px; }
     
     .action-buttons { 
         display: flex; justify-content: flex-end; gap: 8px; 
@@ -358,7 +358,7 @@ function getEditorHtml() {
           <textarea id="mainTextArea" placeholder="여기는 문서로 작성할 내용을 입력하는 부분입니다."></textarea>
         </div>
 
-        <div class="section" style="flex-shrink: 1; flex-grow: 0; min-height: 100px; display: flex; flex-direction: column; padding: 4px;">
+        <div class="section" style="flex-shrink: 1; flex-grow: 0; min-height: 100px; display: flex; flex-direction: column; ">
             <textarea id="memoTextArea" placeholder="여기는 본문 작성시에 참고할 내용을 메모하는 부분입니다.&#10;문서로 작성되지 않습니다."></textarea>
         </div>
 
