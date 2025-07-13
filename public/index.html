@@ -513,7 +513,7 @@ function createTabComponent(targetSelector, title, initialContentHtml) {
     }
 
     // 1. 초기 HTML 구조를 설정합니다.
-    container.innerHTML = `<div style="padding: 5px 0 0 5px; font-weight: 600;"><span>${title}</span></div><div class="tab-content-area"><div class="tab-content-pane active" data-tab-id="tab1">${initialContentHtml}</div></div><div class="tab-bar"><div class="tab-nav-start"><div class="tab-nav-button tab-scroll-btn" data-direction="-1">&lt;</div></div><div class="tab-list"><div class="tab active" data-tab-id="tab1"><span>tab1</span><span class="close-tab">×</span></div></div><div class="tab-controls"><div class="tab-nav-button add-tab-btn">+</div><div class="tab-nav-button tab-scroll-btn" data-direction="1">&gt;</div></div></div>`;
+    container.innerHTML = `<div style="padding: 5px 0 0 5px; font-weight: 600;"><span>${title}</span></div><div class="tab-content-area"><div class="tab-content-pane active" data-tab-id="tab1">${initialContentHtml}</div></div><div class="tab-bar"><div class="tab-nav-start"><div class="tab-nav-button tab-scroll-btn" data-direction="-1">◀;</div></div><div class="tab-list"><div class="tab active" data-tab-id="tab1"><span>tab1</span><span class="close-tab">×</span></div></div><div class="tab-controls"><div class="tab-nav-button add-tab-btn">+</div><div class="tab-nav-button tab-scroll-btn" data-direction="1">▶;</div></div></div>`;
 
     // 2. 필요한 DOM 요소들을 변수에 할당합니다.
     const tabList = container.querySelector('.tab-list');
