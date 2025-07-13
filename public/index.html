@@ -977,7 +977,10 @@ function initializeAiChatComponent(targetSelector, title) {
             // 사용자 메시지의 복사 버튼에도 이벤트 리스너 추가
             userMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
                 navigator.clipboard.writeText(contentToCopy)
-                    .then(() => showCustomAlert('채팅 내용이 복사되었습니다.'))
+                    .then(() => {
+                        // showCustomAlert('채팅 내용이 복사되었습니다.'); // 안내창 호출을 주석 처리
+                        console.log('사용자 메시지 복사 성공'); // 대신 콘솔에만 로그를 남깁니다. (이 줄은 없어도 됩니다)
+                    })
                     .catch(err => console.error('복사 실패: ', err));
             });
         
@@ -1003,11 +1006,17 @@ function initializeAiChatComponent(targetSelector, title) {
                     <button class="copy-btn" title="내용 복사">📋</button>
                   </div>
                 `;
-                assistantMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
-                    navigator.clipboard.writeText(responseText)
-                        .then(() => showCustomAlert('채팅 내용이 복사되었습니다.'))
-                        .catch(err => console.error('복사 실패: ', err));
-                });
+
+            // AI 메시지의 복사 버튼 이벤트
+            assistantMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
+                navigator.clipboard.writeText(responseText)
+                    .then(() => {
+                        // showCustomAlert('채팅 내용이 복사되었습니다.'); // 안내창 호출을 주석 처리
+                        console.log('AI 메시지 복사 성공'); // 대신 콘솔에만 로그를 남깁니다. (이 줄은 없어도 됩니다)
+                    })
+                    .catch(err => console.error('복사 실패: ', err));
+            });
+                            
                 messagesContainer.appendChild(assistantMessageDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 500);
