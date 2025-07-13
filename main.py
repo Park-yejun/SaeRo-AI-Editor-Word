@@ -46,8 +46,7 @@ try:
     
     genai.configure(api_key=API_KEY)
     
-    # 사용할 AI 모델을 선택합니다. 'gemini-1.5-flash-latest'는 빠르고 채팅에 적합합니다.
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.5-pro')
     print("Gemini API 모델이 성공적으로 초기화되었습니다.")
 
 except Exception as e:
