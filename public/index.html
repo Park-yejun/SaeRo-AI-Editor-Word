@@ -429,7 +429,17 @@
             <p>&copy; 2025 법률사무소 새로 박예준. All Rights Reserved.</p>
         </div>
     </div>
+  <div id="loadingPopup" class="loading-popup" style="display: none;"> 
+    <div class="loading-popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
+  </div>
+  <div id="customConfirm" class="custom-alert-popup" style="display: none;">
+    <div class="custom-alert-content"> <p id="customConfirmMessage"></p> <div class="button-group"><button id="customConfirmOkButton">확인</button><button id="customConfirmCancelButton">취소</button></div></div>
+  </div>
+  <div id="customAlert" class="custom-alert-popup" style="display: none;">
+    <div class="custom-alert-content"> <p id="customAlertMessage"></p> <button id="customAlertOkButton">확인</button></div>
+  </div>
 
+    
 
 <script>
 
@@ -542,15 +552,6 @@ function getEditorHtml() {
             <button class="create-doc" onclick="createWordClientSide()">문서작성</button>
             <button class="delete-all" onclick="clearTextArea()">전체삭제</button>
         </div>
-      </div>
-      <div id="loadingPopup" class="loading-popup" style="display: none;"> 
-        <div class="loading-popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
-      </div>
-      <div id="customConfirm" class="custom-alert-popup" style="display: none;">
-        <div class="custom-alert-content"> <p id="customConfirmMessage"></p> <div class="button-group"><button id="customConfirmOkButton">확인</button><button id="customConfirmCancelButton">취소</button></div></div>
-      </div>
-      <div id="customAlert" class="custom-alert-popup" style="display: none;">
-        <div class="custom-alert-content"> <p id="customAlertMessage"></p> <button id="customAlertOkButton">확인</button></div>
       </div>
     `;
 }
