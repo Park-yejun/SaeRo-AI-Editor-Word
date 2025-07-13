@@ -308,6 +308,30 @@
     background-color: var(--primary-color); color: white;
 }
 
+.message-wrapper {
+    display: flex;
+    align-items: flex-start; /* 버튼과 말풍선 상단 정렬 */
+    gap: 8px;
+}
+
+/* 복사 버튼 스타일 */
+.copy-btn {
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    color: var(--text-secondary-color);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 5px; /* 말풍선과 세로 위치 미세 조정 */
+    transition: background-color 0.2s;
+}
+.copy-btn:hover {
+    background-color: #e9ecef;
+}
+    
 /* --- ▼▼▼ 핵심 수정 영역 ▼▼▼ --- */
 
 .chat-input-section {
@@ -938,14 +962,32 @@ function initializeAiChatComponent(targetSelector, title) {
             uploadedFiles = [];
             
             // AI 응답 시뮬레이션
+
+            // 수정 후 코드
             setTimeout(() => {
                 const assistantMessageDiv = document.createElement('div');
                 assistantMessageDiv.className = 'message message-assistant';
+            
                 let responseText = `"${messageText}" 라고 하셨네요.`;
                 if (currentFiles.length > 0) {
                     responseText += `\n\n업로드된 파일(${currentFiles.length}개)도 함께 처리하겠습니다.`;
                 }
-                assistantMessageDiv.innerHTML = `<div class="message-content">${responseText.replace(/\n/g, '<br>')}</div>`;
+            
+                // ▼▼▼ 복사 버튼이 포함된 새로운 HTML 구조 ▼▼▼
+                assistantMessageDiv.innerHTML = `
+                  <div class="message-wrapper">
+                    <div class="message-content">${responseText.replace(/\n/g, '<br>')}</div>
+                    <button class="copy-btn" title="내용 복사">📋</button>
+                  </div>
+                `;
+                
+                // 복사 버튼에 이벤트 리스너 추가
+                assistantMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(responseText)
+                        .then(() => showCustomAlert('채팅 내용이 복사되었습니다.'))
+                        .catch(err => console.error('복사 실패: ', err));
+                });
+            
                 messagesContainer.appendChild(assistantMessageDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 500);
