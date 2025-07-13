@@ -793,7 +793,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
 }
 
 /**
- * AI 채팅 컴포넌트의 모든 로직을 관리하는 독립 함수
+ * AI 채팅 컴포넌트의 모든 로직을 관리하는 독립 함수 (최종 완성본)
  */
 function initializeAiChatComponent(targetSelector, title) {
     const container = document.querySelector(targetSelector);
@@ -806,9 +806,10 @@ function initializeAiChatComponent(targetSelector, title) {
     const addButton = container.querySelector('.add-tab-btn');
     let tabCounter = 1;
 
+    // 개별 채팅 탭의 모든 기능을 설정하는 함수
     const setupChatPane = (chatPane) => {
         if (chatPane.dataset.chatInitialized) return;
-        
+
         const messagesContainer = chatPane.querySelector('.chat-messages');
         const messageInput = chatPane.querySelector('.message-input');
         const sendButton = chatPane.querySelector('.send-btn');
@@ -817,35 +818,79 @@ function initializeAiChatComponent(targetSelector, title) {
         const filePreviewContainer = chatPane.querySelector('.file-preview-container');
         let uploadedFiles = [];
 
-        const sendMessage = () => { /* 이 함수 내용은 변경 없음 */ };
-        const handleFiles = (files) => { /* 이 함수 내용은 변경 없음 */ };
+        // 메시지 전송 로직
+        const sendMessage = () => {
+            const messageText = messageInput.value.trim();
+            if (messageText === '' && uploadedFiles.length === 0) return;
+            
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message message-user';
+            
+            let messageHTML = `<div class="message-content">${messageText.replace(/\n/g, '<br>')}</div>`;
+            if (uploadedFiles.length > 0) {
+                const filesHTML = uploadedFiles.map(file => `<div>- ${file.name}</div>`).join('');
+                messageHTML = `<div class="message-content">${filesHTML}<br>${messageText.replace(/\n/g, '<br>')}</div>`;
+            }
+            userMessageDiv.innerHTML = messageHTML;
+            messagesContainer.appendChild(userMessageDiv);
+            
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            filePreviewContainer.innerHTML = '';
+            const currentFiles = [...uploadedFiles];
+            uploadedFiles = [];
+            
+            // AI 응답 시뮬레이션
+            setTimeout(() => {
+                const assistantMessageDiv = document.createElement('div');
+                assistantMessageDiv.className = 'message message-assistant';
+                let responseText = `"${messageText}" 라고 하셨네요.`;
+                if (currentFiles.length > 0) {
+                    responseText += `\n\n업로드된 파일(${currentFiles.length}개)도 함께 처리하겠습니다.`;
+                }
+                assistantMessageDiv.innerHTML = `<div class="message-content">${responseText.replace(/\n/g, '<br>')}</div>`;
+                messagesContainer.appendChild(assistantMessageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 500);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
 
+        // 파일 처리 로직
+        const handleFiles = (files) => {
+            if (uploadedFiles.length + files.length > 10) {
+                showCustomAlert('파일은 최대 10개까지 업로드할 수 있습니다.');
+                return;
+            }
+            for (const file of files) {
+                uploadedFiles.push(file);
+                const previewItem = document.createElement('div');
+                previewItem.className = 'file-preview-item';
+                previewItem.innerHTML = `<span>${file.name}</span><span class="remove-file-btn" title="파일 제거">×</span>`;
+                previewItem.querySelector('.remove-file-btn').onclick = () => {
+                    uploadedFiles = uploadedFiles.filter(f => f !== file);
+                    previewItem.remove();
+                };
+                filePreviewContainer.appendChild(previewItem);
+            }
+        };
+
+        // 이벤트 리스너 연결
         sendButton.onclick = sendMessage;
         uploadButton.onclick = () => fileInput.click();
         fileInput.onchange = () => { handleFiles(fileInput.files); fileInput.value = ''; };
         messageInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
         messageInput.oninput = () => { messageInput.style.height = 'auto'; messageInput.style.height = `${messageInput.scrollHeight}px`; };
         
-        // --- ▼▼▼ 드래그앤드롭 영역 수정 ▼▼▼ ---
         const chatInputSection = chatPane.querySelector('.chat-input-section');
-        chatInputSection.ondragover = (e) => { 
-            e.preventDefault(); 
-            chatInputSection.style.backgroundColor = '#e9ecef'; 
-        };
-        chatInputSection.ondragleave = (e) => { 
-            e.preventDefault(); 
-            chatInputSection.style.backgroundColor = '#fff'; 
-        };
-        chatInputSection.ondrop = (e) => { 
-            e.preventDefault(); 
-            chatInputSection.style.backgroundColor = '#fff'; 
-            if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); 
-        };
+        chatInputSection.ondragover = (e) => { e.preventDefault(); chatInputSection.style.backgroundColor = '#e9ecef'; };
+        chatInputSection.ondragleave = (e) => { e.preventDefault(); chatInputSection.style.backgroundColor = '#fff'; };
+        chatInputSection.ondrop = (e) => { e.preventDefault(); chatInputSection.style.backgroundColor = '#fff'; if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); };
         messageInput.onpaste = (e) => { if (e.clipboardData.files.length > 0) { e.preventDefault(); handleFiles(e.clipboardData.files); } };
         
         chatPane.dataset.chatInitialized = 'true';
     };
-    
+
+    // 탭 활성화 로직
     const activateTab = (tabToActivate) => {
         if (!tabToActivate) return;
         tabList.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -858,6 +903,7 @@ function initializeAiChatComponent(targetSelector, title) {
         }
     };
     
+    // 새 탭 추가 로직
     addButton.addEventListener('click', () => {
         tabCounter++;
         const newTabId = `tab${tabCounter}`;
@@ -875,6 +921,7 @@ function initializeAiChatComponent(targetSelector, title) {
         tabList.scrollLeft = tabList.scrollWidth;
     });
     
+    // 탭 클릭, 닫기, 이름 바꾸기, 스크롤 등 나머지 탭 관리 로직
     tabList.addEventListener('click', (event) => {
         const target = event.target;
         if (target.classList.contains('close-tab')) {
@@ -945,7 +992,6 @@ function initializeAiChatComponent(targetSelector, title) {
     
     activateTab(container.querySelector('.tab.active'));
 }
-
 
 // ==================================================================
 // SECTION 4: 페이지 초기화 및 기능별 담당 함수
