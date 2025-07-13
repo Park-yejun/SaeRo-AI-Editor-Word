@@ -22,7 +22,15 @@ from PIL import Image
 # 2. Flask 앱 초기화
 # ==============================================================================
 app = Flask(__name__)
-CORS(app)
+
+# preflight request를 포함한 모든 CORS 요청을 처리하기 위해 설정을 강화합니다.
+# 모든 출처, 모든 헤더, 모든 메서드를 명시적으로 허용합니다.
+CORS(app, resources={r"/*": {"origins": "*"}},
+     allow_headers=["Authorization", "Content-Type"],
+     methods=["GET", "POST", "OPTIONS"],
+     supports_credentials=True)
+
+print("CORS is configured with explicit methods and headers.") # 배포 확인용 로그
 
 # 보안을 위해 코드에 직접 키를 넣는 대신, 'GEMINI_API_KEY'라는 이름의 환경 변수에서 키를 가져옵니다.
 # 서버 실행 시 이 환경 변수를 설정해야 합니다.
