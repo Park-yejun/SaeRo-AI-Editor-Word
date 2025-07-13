@@ -947,81 +947,88 @@ function initializeAiChatComponent(targetSelector, title) {
         let uploadedFiles = [];
 
         // 메시지 전송 로직
-        const sendMessage = () => {
+        const sendMessage = async () => { // async 키워드가 추가되었습니다.
             const messageText = messageInput.value.trim();
             if (messageText === '' && uploadedFiles.length === 0) return;
-            
+        
+            // --- 사용자 메시지 표시 (이 부분은 기존 코드와 동일) ---
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message message-user';
-            
-            // ▼▼▼ 사용자 메시지에도 복사 버튼과 래퍼(wrapper)를 추가합니다. ▼▼▼
             let messageHTML = '';
-            let contentToCopy = messageText; // 복사할 내용 기본값
-        
+            let contentToCopy = messageText;
             if (uploadedFiles.length > 0) {
                 const filesText = uploadedFiles.map(f => `- ${f.name}`).join('\n');
-                contentToCopy = `${filesText}\n${messageText}`; // 복사 내용에 파일 목록 추가
+                contentToCopy = `${filesText}\n${messageText}`;
                 const filesHTML = uploadedFiles.map(file => `<div>- ${file.name}</div>`).join('');
                 messageHTML = `<div class="message-content">${filesHTML}<br>${messageText.replace(/\n/g, '<br>')}</div>`;
             } else {
                 messageHTML = `<div class="message-content">${messageText.replace(/\n/g, '<br>')}</div>`;
             }
-        
-            userMessageDiv.innerHTML = `
-              <div class="message-wrapper">
-                ${messageHTML}
-                <button class="copy-btn" title="내용 복사">📋</button>
-              </div>
-            `;
-            
-            // 사용자 메시지의 복사 버튼에도 이벤트 리스너 추가
+            userMessageDiv.innerHTML = `<div class="message-wrapper">${messageHTML}<button class="copy-btn" title="내용 복사">📋</button></div>`;
             userMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
-                navigator.clipboard.writeText(contentToCopy)
-                    .then(() => {
-                        // showCustomAlert('채팅 내용이 복사되었습니다.'); // 안내창 호출을 주석 처리
-                        console.log('사용자 메시지 복사 성공'); // 대신 콘솔에만 로그를 남깁니다. (이 줄은 없어도 됩니다)
-                    })
-                    .catch(err => console.error('복사 실패: ', err));
+                navigator.clipboard.writeText(contentToCopy).catch(err => console.error('복사 실패: ', err));
             });
-        
             messagesContainer.appendChild(userMessageDiv);
-            
+        
+            // 입력창 및 파일 초기화
             messageInput.value = '';
             messageInput.style.height = 'auto';
             filePreviewContainer.innerHTML = '';
             const currentFiles = [...uploadedFiles];
             uploadedFiles = [];
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            // AI 응답 시뮬레이션 (이 부분은 변경 없음)
-            setTimeout(() => {
+            // --- AI 응답 처리 (setTimeout 부분을 실제 API 호출로 변경) ---
+        
+            // 1. "답변 생성 중..." 임시 메시지를 먼저 표시합니다.
+            const loadingMessageDiv = document.createElement('div');
+            loadingMessageDiv.className = 'message message-assistant';
+            loadingMessageDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">답변 생성 중...</div></div>`;
+            messagesContainer.appendChild(loadingMessageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+            try {
+                // 2. 백엔드 API를 호출합니다.
+                const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app";
+                
+                const response = await fetch(`${BACKEND_URL}/chat-gemini`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: messageText }), // 사용자 메시지를 JSON으로 전송
+                });
+        
+                const data = await response.json();
+                
+                // 3. "답변 생성 중..." 메시지를 실제 응답으로 교체합니다.
+                loadingMessageDiv.remove(); // 로딩 메시지 삭제
+        
+                let responseText = response.ok ? data.reply : `오류: ${data.error || '알 수 없는 오류'}`;
+                
                 const assistantMessageDiv = document.createElement('div');
                 assistantMessageDiv.className = 'message message-assistant';
-                let responseText = `"${messageText}" 라고 하셨네요.`;
-                if (currentFiles.length > 0) {
-                    responseText += `\n\n업로드된 파일(${currentFiles.length}개)도 함께 처리하겠습니다.`;
-                }
                 assistantMessageDiv.innerHTML = `
                   <div class="message-wrapper">
                     <div class="message-content">${responseText.replace(/\n/g, '<br>')}</div>
                     <button class="copy-btn" title="내용 복사">📋</button>
-                  </div>
-                `;
-
-            // AI 메시지의 복사 버튼 이벤트
-            assistantMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
-                navigator.clipboard.writeText(responseText)
-                    .then(() => {
-                        // showCustomAlert('채팅 내용이 복사되었습니다.'); // 안내창 호출을 주석 처리
-                        console.log('AI 메시지 복사 성공'); // 대신 콘솔에만 로그를 남깁니다. (이 줄은 없어도 됩니다)
-                    })
-                    .catch(err => console.error('복사 실패: ', err));
-            });
-                            
+                  </div>`;
+                assistantMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(responseText).catch(err => console.error('복사 실패: ', err));
+                });
                 messagesContainer.appendChild(assistantMessageDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 500);
         
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (error) {
+                // 4. 네트워크 오류 등 fetch 자체가 실패했을 경우의 예외 처리
+                loadingMessageDiv.remove(); // 로딩 메시지 삭제
+                const errorMessage = `네트워크 오류 또는 서버 연결 실패: ${error.message}`;
+                const errorMessageDiv = document.createElement('div');
+                errorMessageDiv.className = 'message message-assistant';
+                errorMessageDiv.innerHTML = `<div class="message-wrapper"><div class="message-content" style="color: red;">${errorMessage}</div></div>`;
+                messagesContainer.appendChild(errorMessageDiv);
+                console.error('Chat API Error:', error);
+            } finally {
+                // 5. 작업 완료 후 스크롤을 항상 맨 아래로 이동
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
         };
         
         // 파일 처리 로직
