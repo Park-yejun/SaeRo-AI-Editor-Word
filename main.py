@@ -30,7 +30,8 @@ CORS(app, resources={r"/*": {"origins": "*"}},
      methods=["GET", "POST", "OPTIONS"],
      supports_credentials=True)
 
-print("CORS is configured with explicit methods and headers.") # 배포 확인용 로그
+print("!!! SERVER RESTARTED WITH NEW CODE !!!") # <-- 새로 추가된 로그
+print("CORS is configured with explicit methods and headers.") # <-- 기존 로그
 
 # 보안을 위해 코드에 직접 키를 넣는 대신, 'GEMINI_API_KEY'라는 이름의 환경 변수에서 키를 가져옵니다.
 # 서버 실행 시 이 환경 변수를 설정해야 합니다.
