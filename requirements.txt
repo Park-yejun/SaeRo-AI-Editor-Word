@@ -4,3 +4,4 @@ python-docx
 Pillow
 requests
 gunicorn
+google-generativeai
