@@ -318,7 +318,9 @@
         background-color: #f1f3f5;
         color: var(--text-color);
         line-height: 1.6;
-        white-space: pre-wrap; /* 줄바꿈 및 공백 유지 */
+        white-space: pre-wrap;
+        font-family: var(--font-family-main); /* UI 기본 글꼴 사용 */
+        font-size: 13px; /* UI 라벨과 유사한 크기로 조정 (12px~14px 사이에서 조절 가능) */
     }
     
     .message-user .message-content {
@@ -974,23 +976,32 @@ function initializeAiChatComponent(targetSelector, title) {
 // ==================================================================
 
 /**
- * 에디터 기능의 모든 초기화를 담당하는 함수
- */
+ * 에디터 기능의 모든 초기화를 담당하는 함수
+ */
 function initEditorFeature() {
-    const onEditorTabActivated = (activePane) => {
-        mainTextArea = activePane.querySelector('#mainTextArea');
-        memoTextArea = activePane.querySelector('#memoTextArea');
-        docTitleInput = activePane.querySelector('#docTitle');
-        fontFamilySelect = activePane.querySelector('#fontFamily');
-        fontSizeInput = activePane.querySelector('#fontSize');
-        lineSpacingInput = activePane.querySelector('#lineSpacing');
-        paraSpacingAfterInput = activePane.querySelector('#paraSpacingAfter');
-        marginTopInput = activePane.querySelector('#marginTop');
-        marginBottomInput = activePane.querySelector('#marginBottom');
-        marginLeftInput = activePane.querySelector('#marginLeft');
-        marginRightInput = activePane.querySelector('#marginRight');
-    };
-    createTabComponent('.Section2-3', '■ Editor', getEditorHtml(), onEditorTabActivated);
+    // 에디터 탭이 활성화될 때마다 실행될 동작을 정의합니다.
+    const onEditorTabActivated = (activePane) => {
+        // 전역 변수들이 항상 활성화된 탭의 요소를 가리키도록 업데이트합니다.
+        mainTextArea = activePane.querySelector('#mainTextArea');
+        memoTextArea = activePane.querySelector('#memoTextArea');
+        docTitleInput = activePane.querySelector('#docTitle');
+        fontFamilySelect = activePane.querySelector('#fontFamily');
+        fontSizeInput = activePane.querySelector('#fontSize');
+        lineSpacingInput = activePane.querySelector('#lineSpacing');
+        paraSpacingAfterInput = activePane.querySelector('#paraSpacingAfter');
+        marginTopInput = activePane.querySelector('#marginTop');
+        marginBottomInput = activePane.querySelector('#marginBottom');
+        marginLeftInput = activePane.querySelector('#marginLeft');
+        marginRightInput = activePane.querySelector('#marginRight');
+    };
+
+    // 업그레이드된 createTabComponent를 호출합니다.
+    createTabComponent(
+        '.Section2-3', 
+        '■ Editor', 
+        getEditorHtml(),
+        onEditorTabActivated // 탭 활성화 시 실행할 콜백 함수를 전달합니다.
+    );
 }
 
 /**
