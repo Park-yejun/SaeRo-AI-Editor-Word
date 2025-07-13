@@ -408,6 +408,101 @@
 .chat-tool-btn.send-btn:hover {
     filter: brightness(1.1);
 }
+
+/* ================================================================== */
+/* == 팝업 및 로딩 창 스타일 (최상위 z-index 적용) == */
+/* ================================================================== */
+.loading-popup,
+.custom-alert-popup {
+    position: fixed; /* 화면 전체를 기준으로 위치 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* 반투명 배경 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000; /* 다른 모든 요소들보다 위에 있도록 높은 값 설정 */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.loading-popup-content,
+.custom-alert-content {
+    background-color: white;
+    padding: 25px 35px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.custom-alert-content p,
+.loading-popup-content p {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+.custom-alert-content .button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.custom-alert-content button,
+.loading-popup-content button {
+    padding: 8px 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #f8f9fa;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 80px;
+}
+.custom-alert-content button:hover,
+.loading-popup-content button:hover {
+    background-color: #e9ecef;
+}
+
+/* 확인, 취소 버튼 등 특정 버튼에 대한 스타일 */
+.custom-alert-content #customConfirmOkButton,
+.custom-alert-content #customAlertOkButton {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+.custom-alert-content #customConfirmOkButton:hover,
+.custom-alert-content #customAlertOkButton:hover {
+    filter: brightness(1.1);
+}
+
+/* 로딩바 스타일 */
+.progress-bar-container {
+    height: 8px;
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+.progress-bar-animated {
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+    background-size: 40px 40px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    from { background-position: 40px 0; }
+    to { background-position: 0 0; }
+}
     
 </style>
     
