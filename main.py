@@ -392,3 +392,39 @@ def handle_create_docx():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@app.route('/chat-gemini', methods=['POST'])
+def handle_chat():
+    """프론트엔드로부터 채팅 메시지를 받아 Gemini API로 전달하고 응답을 반환합니다."""
+    # 1. Gemini 모델이 성공적으로 초기화되었는지 확인합니다.
+    if model is None:
+        return jsonify({"error": "Gemini API 모델이 초기화되지 않았습니다. 서버 로그를 확인해주세요."}), 503
+
+    # 2. 프론트엔드에서 보낸 요청이 유효한지 확인합니다.
+    try:
+        if not request.is_json:
+            return jsonify({"error": "요청 형식이 올바르지 않습니다. (JSON 필요)"}), 400
+        
+        data = request.get_json()
+        user_message = data.get('message')
+
+        if not user_message:
+            return jsonify({"error": "'message' 필드가 요청에 포함되지 않았습니다."}), 400
+    except Exception as e:
+        print(f"요청 데이터 처리 중 오류 발생: {e}")
+        return jsonify({"error": "요청 데이터를 파싱하는 중 오류가 발생했습니다."}), 400
+
+    # 3. Gemini API를 호출하여 답변을 생성합니다.
+    try:
+        # 간단한 단일 응답을 위해 빈 대화 기록으로 채팅 세션을 시작합니다.
+        chat_session = model.start_chat(history=[])
+        response = chat_session.send_message(user_message)
+        
+        # API 응답 텍스트를 JSON 형태로 프론트엔드에 반환합니다.
+        return jsonify({"reply": response.text})
+
+    except Exception as e:
+        # API 호출 중 예외가 발생하면 서버 로그에 기록하고, 사용자에게 에러 메시지를 전달합니다.
+        print(f"!!! Gemini API 호출 오류: {e}")
+        return jsonify({"error": f"AI와 통신하는 중 오류가 발생했습니다: {str(e)}"}), 500
+
