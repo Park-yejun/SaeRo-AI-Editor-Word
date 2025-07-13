@@ -240,11 +240,15 @@
     .syntax-button-like { background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; transition: background-color 0.2s; }
     .syntax-button-like:hover { background-color: #f1f3f5; }
 
-    #mainTextArea, #memoTextArea { 
-        width: 100%; height: 100%; border: 1px solid var(--border-color); 
-        resize: none; font-size: 14px; line-height: 1.6; padding: 12px;
+    #mainTextArea, #memoTextArea { 
+        width: 100%; height: 100%; border: 1px solid var(--border-color); 
+        resize: none;
+        font-family: var(--font-family-main); /* 글꼴을 다른 UI와 동일하게 지정 */
+        font-size: 12px; /* "찾기:"와 같은 크기로 수정 */
+        line-height: 1.6; padding: 12px;
         border-radius: 8px;
     }
+    
     #mainTextArea:focus, #memoTextArea:focus {
         outline: none; border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
