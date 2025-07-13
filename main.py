@@ -2,9 +2,11 @@
 # 1. 라이브러리 임포트
 # ==============================================================================
 import io
+import os  # [추가] API 키를 안전하게 관리하기 위해 os 라이브러리를 임포트합니다.
 import re
 import requests
 import docx
+import google.generativeai as genai  # [추가] Gemini API 사용을 위한 라이브러리입니다.
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from datetime import datetime, timezone, timedelta
@@ -21,6 +23,29 @@ from PIL import Image
 # ==============================================================================
 app = Flask(__name__)
 CORS(app)
+
+# 보안을 위해 코드에 직접 키를 넣는 대신, 'GEMINI_API_KEY'라는 이름의 환경 변수에서 키를 가져옵니다.
+# 서버 실행 시 이 환경 변수를 설정해야 합니다.
+try:
+    # os.environ.get()을 사용하여 환경 변수를 읽어옵니다.
+    API_KEY = os.environ.get("GEMINI_API_KEY")
+    if not API_KEY:
+        # API 키가 없으면 오류를 발생시켜 서버 로그에 명확히 표시합니다.
+        raise ValueError("환경 변수 'GEMINI_API_KEY'가 설정되지 않았습니다. 서버 실행 시 API 키를 설정해주세요.")
+    
+    genai.configure(api_key=API_KEY)
+    
+    # 사용할 AI 모델을 선택합니다. 'gemini-1.5-flash-latest'는 빠르고 채팅에 적합합니다.
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    print("Gemini API 모델이 성공적으로 초기화되었습니다.")
+
+except Exception as e:
+    # API 키가 없거나 잘못된 경우 등 초기화 실패 시 에러를 출력합니다.
+    print(f"!!! Gemini API 초기화 오류: {e}")
+    model = None # 모델 초기화 실패 시 None으로 설정하여 이후 호출에서 에러를 방지합니다.
+
+
+
 
 # ==============================================================================
 # 3. 워드 문서 생성 헬퍼 함수
