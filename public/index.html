@@ -281,6 +281,134 @@
         align-items: center;
         flex-shrink: 0;
     }
+
+/* ================================================================== */
+/* == AI 채팅 UI 스타일 (Added by Gemini for AI Chat Feature) == */
+/* ================================================================== */
+    .chat-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background-color: #fff;
+    }
+    
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 20px 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .message {
+        display: flex;
+        max-width: 85%;
+        align-self: flex-start;
+    }
+    .message-user {
+        align-self: flex-end;
+    }
+    
+    .message-content {
+        padding: 12px 18px;
+        border-radius: 18px;
+        background-color: #f1f3f5;
+        color: var(--text-color);
+        line-height: 1.6;
+        white-space: pre-wrap; /* 줄바꿈 및 공백 유지 */
+    }
+    
+    .message-user .message-content {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .chat-input-section {
+        padding: 12px;
+        border-top: 1px solid var(--border-color);
+        background-color: #fff;
+        flex-shrink: 0;
+    }
+    
+    .chat-input-wrapper {
+        display: flex;
+        align-items: flex-end; /* 텍스트박스 높이 변경시 버튼 정렬 유지 */
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        background-color: #f8f9fa;
+        transition: box-shadow 0.2s;
+    }
+    .chat-input-wrapper:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+    }
+    
+    .file-preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+        width: 100%;
+    }
+    .file-preview-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #e9ecef;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+    }
+    .file-preview-item .remove-file-btn {
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        padding: 2px;
+    }
+    
+    .message-input {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        padding: 4px 0;
+        font-size: 14px;
+        background-color: transparent;
+        resize: none;
+        max-height: 150px; /* 입력창 최대 높이 */
+        overflow-y: auto;
+        line-height: 1.5;
+    }
+    
+    .chat-tool-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+        flex-shrink: 0;
+    }
+    .chat-tool-btn:hover {
+        background-color: #e9ecef;
+    }
+    .chat-tool-btn.send-btn {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .chat-tool-btn.send-btn:hover {
+        filter: brightness(1.1);
+    }
+
 </style>
     
 </head>
@@ -304,14 +432,18 @@
 
 
 <script>
-// JavaScript 코드는 이전과 동일합니다.
-// 여기에 기존의 script 태그 안의 모든 내용을 그대로 붙여넣으시면 됩니다.
 
+// ==================================================================
+// 최종 수정된 전체 스크립트 코드
+// ==================================================================
+
+// --- 전역 변수 선언 ---
 const userName = "박예준2";
 const userPhone = "010-9876-5432";
-document.getElementById('user-name').textContent = userName;
-document.getElementById('user-phone').textContent = userPhone;
-
+let mainTextArea, memoTextArea, docTitleInput, fontFamilySelect, fontSizeInput, lineSpacingInput, paraSpacingAfterInput, loadingPopup, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput;
+let undoStack = [];
+let loadingTimerIntervalId = null;
+let loadingStartTime = 0;
 
 // ==================================================================
 // SECTION 1: HTML 콘텐츠 생성 함수
@@ -322,7 +454,6 @@ function getPrompterListHtml() {
 }
 
 function getEditorHtml() {
-    // 3.html의 UI 구조에서 제목(h1)과 닫기 버튼을 제거한 최종 버전
     return `
       <div class="container">
         <div class="section">
@@ -346,70 +477,71 @@ function getEditorHtml() {
         </div>
         <div class="section">
             <div class="syntax-buttons-wrapper">
-<button class="group1" onclick="insertSyntax('{제목1.1}')" title="{제목1.1}"><span class="button-text">{제목1.1}</span><small>[Alt+1]</small></button>
-<button class="group1" onclick="insertSyntax('{제목1.2}')" title="{제목1.2}"><span class="button-text">{제목1.2}</span><small>[Alt+2]</small></button>
-<button class="group1" onclick="insertSyntax('{제목1.3}')" title="{제목1.3}"><span class="button-text">{제목1.3}</span><small>[Alt+3]</small></button>
-<button class="group1" onclick="insertSyntax('{제목2.1}')" title="{제목2.1}"><span class="button-text">{제목2.1}</span><small>[Alt+4]</small></button>
-<button class="group1" onclick="insertSyntax('{제목2.2}')" title="{제목2.2}"><span class="button-text">{제목2.2}</span><small>[Alt+5]</small></button>
-<button class="group1" onclick="insertSyntax('{제목2.3}')" title="{제목2.3}"><span class="button-text">{제목2.3}</span><small>[Alt+6]</small></button>
-<button class="group1" onclick="insertSyntax('{제목3.1}')" title="{제목3.1}"><span class="button-text">{제목3.1}</span><small>[Alt+7]</small></button>
-<button class="group1" onclick="insertSyntax('{제목3.2}')" title="{제목3.2}"><span class="button-text">{제목3.2}</span><small>[Alt+8]</small></button>
-<button class="group1" onclick="insertSyntax('{제목3.3}')" title="{제목3.3}"><span class="button-text">{제목3.3}</span><small>[Alt+9]</small></button>
-<button class="group2" onclick="insertSyntax('{왼쪽}')" title="{왼쪽}"><span class="button-text">{왼쪽}</span><small>[Alt+Q]</small></button>
-<button class="group2" onclick="insertSyntax('{가운데}')" title="{가운데}"><span class="button-text">{가운데}</span><small>[Alt+W]</small></button>
-<button class="group2" onclick="insertSyntax('{오른쪽}')" title="{오른쪽}"><span class="button-text">{오른쪽}</span><small>[Alt+E]</small></button>
-<button class="group2" onclick="insertSyntax('{양쪽}')" title="{양쪽}"><span class="button-text">{양쪽}</span><small>[Alt+R]</small></button>
-<button class="group2" onclick="insertSyntax('{균등}')" title="{균등}"><span class="button-text">{균등}</span><small>[Alt+T]</small></button>
-<button class="group2" onclick="insertSyntax('{10pt}')" title="{10pt}"><span class="button-text">{10pt}</span><small>[Alt+Y]</small></button>
-<button class="group2" onclick="insertSyntax('{1줄}')" title="{1줄}"><span class="button-text">{1줄}</span><small>[Alt+U]</small></button>
-<button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:0.5}')" title="{들여쓰기,1번줄:0.5,2번줄이하:0.5}"><span class="button-text">{들여쓰기...}</span><small>[Alt+I]</small></button>
-<button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:1,2번줄이하:1}')" title="{들여쓰기,1번줄:1,2번줄이하:1}"><span class="button-text">{들여쓰기...}</span><small>[Alt+O]</small></button>
-<button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0,2번줄이하:0.5}')" title="{들여쓰기,1번줄:0,2번줄이하:0.5}"><span class="button-text">{들여쓰기...}</span><small>[Alt+P]</small></button>
-<button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:1}')" title="{들여쓰기,1번줄:0.5,2번줄이하:1}"><span class="button-text">{들여쓰기...}</span><small>[Alt+[ ]</small></button>
-<button class="group3" onclick="insertSyntax('{진하게}')" title="{진하게}"><span class="button-text">{진하게}</span><small>[Alt+A]</small></button>
-<button class="group3" onclick="insertSyntax('{밑줄}')" title="{밑줄}"><span class="button-text">{밑줄}</span><small>[Alt+S]</small></button>
-<button class="group3" onclick="insertSyntax('{>>}')" title="{>>}"><span class="button-text">{>>}</span><small>[Alt+D]</small></button>
-<button class="group3" onclick="insertSyntax('{<<}')" title="{<<}"><span class="button-text">{<<}</span><small>[Alt+F]</small></button>
-<button class="group3" onclick="insertSyntax('{탭}')" title="{탭}"><span class="button-text">{탭}</span><small>[Alt+G]</small></button>
-<button class="group3" onclick="insertSyntax('{줄바꿈}')" title="{줄바꿈}"><span class="button-text">{줄바꿈}</span><small>[Alt+H]</small></button>
-<button class="group3" onclick="insertSyntax('{문단바꿈}')" title="{문단바꿈}"><span class="button-text">{문단바꿈}</span><small>[Alt+J]</small></button>
-<button class="group3" onclick="insertSyntax('{페이지바꿈}')" title="{페이지바꿈}"><span class="button-text">{페이지바꿈}</span><small>[Alt+K]</small></button>
-<button class="group4" onclick="insertSyntax('{표시작1,글꼴=??,크기=#}')" title="{표시작1,글꼴=??,크기=#}"><span class="button-text">{표시작1...}</span><small>[Alt+Z]</small></button>
-<button class="group4" onclick="insertSyntax('{표시작1,테두리없음}')" title="{표시작1,테두리없음}"><span class="button-text">{표시작1,테두리없음}</span><small>[Alt+X]</small></button>
-<button class="group4" onclick="insertSyntax('{표끝1}')" title="{표끝1}"><span class="button-text">{표끝1}</span><small>[Alt+C]</small></button>
-<button class="group4" onclick="insertSyntax('{표시작2,글꼴=??,크기=#}')" title="{표시작2,글꼴=??,크기=#}"><span class="button-text">{표시작2...}</span><small>[Alt+V]</small></button>
-<button class="group4" onclick="insertSyntax('{표끝2}')" title="{표끝2}"><span class="button-text">{표끝2}</span><small>[Alt+B]</small></button>
-<button class="group4" onclick="insertSyntax('{제목행}')" title="{제목행}"><span class="button-text">{제목행}</span><small>[Alt+N]</small></button>
-<button class="group4" onclick="insertSyntax('{회색}')" title="{회색}"><span class="button-text">{회색}</span><small>[Alt+M]</small></button>
-<button class="group4" onclick="insertSyntax('{남색}')" title="{남색}"><span class="button-text">{남색}</span><small>[Alt+,]</small></button>
-<button class="group5" onclick="insertSyntax('{그림:~}')" title="{그림:~}"><span class="button-text">{그림:~}</span><small>[Alt+.]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목1.1}')" title="{제목1.1}"><span class="button-text">{제목1.1}</span><small>[Alt+1]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목1.2}')" title="{제목1.2}"><span class="button-text">{제목1.2}</span><small>[Alt+2]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목1.3}')" title="{제목1.3}"><span class="button-text">{제목1.3}</span><small>[Alt+3]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목2.1}')" title="{제목2.1}"><span class="button-text">{제목2.1}</span><small>[Alt+4]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목2.2}')" title="{제목2.2}"><span class="button-text">{제목2.2}</span><small>[Alt+5]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목2.3}')" title="{제목2.3}"><span class="button-text">{제목2.3}</span><small>[Alt+6]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목3.1}')" title="{제목3.1}"><span class="button-text">{제목3.1}</span><small>[Alt+7]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목3.2}')" title="{제목3.2}"><span class="button-text">{제목3.2}</span><small>[Alt+8]</small></button>
+                <button class="group1" onclick="insertSyntax('{제목3.3}')" title="{제목3.3}"><span class="button-text">{제목3.3}</span><small>[Alt+9]</small></button>
+                <button class="group2" onclick="insertSyntax('{왼쪽}')" title="{왼쪽}"><span class="button-text">{왼쪽}</span><small>[Alt+Q]</small></button>
+                <button class="group2" onclick="insertSyntax('{가운데}')" title="{가운데}"><span class="button-text">{가운데}</span><small>[Alt+W]</small></button>
+                <button class="group2" onclick="insertSyntax('{오른쪽}')" title="{오른쪽}"><span class="button-text">{오른쪽}</span><small>[Alt+E]</small></button>
+                <button class="group2" onclick="insertSyntax('{양쪽}')" title="{양쪽}"><span class="button-text">{양쪽}</span><small>[Alt+R]</small></button>
+                <button class="group2" onclick="insertSyntax('{균등}')" title="{균등}"><span class="button-text">{균등}</span><small>[Alt+T]</small></button>
+                <button class="group2" onclick="insertSyntax('{10pt}')" title="{10pt}"><span class="button-text">{10pt}</span><small>[Alt+Y]</small></button>
+                <button class="group2" onclick="insertSyntax('{1줄}')" title="{1줄}"><span class="button-text">{1줄}</span><small>[Alt+U]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:0.5}')" title="{들여쓰기,1번줄:0.5,2번줄이하:0.5}"><span class="button-text">{들여쓰기...}</span><small>[Alt+I]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:1,2번줄이하:1}')" title="{들여쓰기,1번줄:1,2번줄이하:1}"><span class="button-text">{들여쓰기...}</span><small>[Alt+O]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0,2번줄이하:0.5}')" title="{들여쓰기,1번줄:0,2번줄이하:0.5}"><span class="button-text">{들여쓰기...}</span><small>[Alt+P]</small></button>
+                <button class="group2" onclick="insertSyntax('{들여쓰기,1번줄:0.5,2번줄이하:1}')" title="{들여쓰기,1번줄:0.5,2번줄이하:1}"><span class="button-text">{들여쓰기...}</span><small>[Alt+[ ]</small></button>
+                <button class="group3" onclick="insertSyntax('{진하게}')" title="{진하게}"><span class="button-text">{진하게}</span><small>[Alt+A]</small></button>
+                <button class="group3" onclick="insertSyntax('{밑줄}')" title="{밑줄}"><span class="button-text">{밑줄}</span><small>[Alt+S]</small></button>
+                <button class="group3" onclick="insertSyntax('{>>}')" title="{>>}"><span class="button-text">{>>}</span><small>[Alt+D]</small></button>
+                <button class="group3" onclick="insertSyntax('{<<}')" title="{<<}"><span class="button-text">{<<}</span><small>[Alt+F]</small></button>
+                <button class="group3" onclick="insertSyntax('{탭}')" title="{탭}"><span class="button-text">{탭}</span><small>[Alt+G]</small></button>
+                <button class="group3" onclick="insertSyntax('{줄바꿈}')" title="{줄바꿈}"><span class="button-text">{줄바꿈}</span><small>[Alt+H]</small></button>
+                <button class="group3" onclick="insertSyntax('{문단바꿈}')" title="{문단바꿈}"><span class="button-text">{문단바꿈}</span><small>[Alt+J]</small></button>
+                <button class="group3" onclick="insertSyntax('{페이지바꿈}')" title="{페이지바꿈}"><span class="button-text">{페이지바꿈}</span><small>[Alt+K]</small></button>
+                <button class="group4" onclick="insertSyntax('{표시작1,글꼴=??,크기=#}')" title="{표시작1,글꼴=??,크기=#}"><span class="button-text">{표시작1...}</span><small>[Alt+Z]</small></button>
+                <button class="group4" onclick="insertSyntax('{표시작1,테두리없음}')" title="{표시작1,테두리없음}"><span class="button-text">{표시작1,테두리없음}</span><small>[Alt+X]</small></button>
+                <button class="group4" onclick="insertSyntax('{표끝1}')" title="{표끝1}"><span class="button-text">{표끝1}</span><small>[Alt+C]</small></button>
+                <button class="group4" onclick="insertSyntax('{표시작2,글꼴=??,크기=#}')" title="{표시작2,글꼴=??,크기=#}"><span class="button-text">{표시작2...}</span><small>[Alt+V]</small></button>
+                <button class="group4" onclick="insertSyntax('{표끝2}')" title="{표끝2}"><span class="button-text">{표끝2}</span><small>[Alt+B]</small></button>
+                <button class="group4" onclick="insertSyntax('{제목행}')" title="{제목행}"><span class="button-text">{제목행}</span><small>[Alt+N]</small></button>
+                <button class="group4" onclick="insertSyntax('{회색}')" title="{회색}"><span class="button-text">{회색}</span><small>[Alt+M]</small></button>
+                <button class="group4" onclick="insertSyntax('{남색}')" title="{남색}"><span class="button-text">{남색}</span><small>[Alt+,]</small></button>
+                <button class="group5" onclick="insertSyntax('{그림:~}')" title="{그림:~}"><span class="button-text">{그림:~}</span><small>[Alt+.]</small></button>
             </div>
         </div>
-
         <div class="section simple-find-replace-bar">
-            <div class="find-replace-inputs">
-                <label>찾기: <input type="text" id="simpleFindText"></label>
-                <label>바꾸기: <input type="text" id="simpleReplaceText"></label>
-            </div>
-            <div class="find-replace-buttons">
-                <button class="syntax-button-like" onclick="simpleFindNext()">다음 찾기</button>
-                <button class="syntax-button-like" onclick="simpleReplaceCurrent()">바꾸기</button>
-                <button class="syntax-button-like" onclick="previewSelectionBeforeReplaceAll()">모두 바꾸기</button>
-                <button class="syntax-button-like" onclick="performUndo()">되돌리기</button> 
-                <button class="syntax-button-like" onclick="resetFindReplace()">초기화</button>
-            </div>
+          <div class="find-replace-inputs">
+            <label>찾기: <input type="text" id="simpleFindText"></label>
+            <label>바꾸기: <input type="text" id="simpleReplaceText"></label>
+          </div>
+          <div class="find-replace-buttons">
+            <button class="syntax-button-like" onclick="simpleFindNext()">다음 찾기</button>
+            <button class="syntax-button-like" onclick="simpleReplaceCurrent()">바꾸기</button>
+            <button class="syntax-button-like" onclick="previewSelectionBeforeReplaceAll()">모두 바꾸기</button>
+            <button class="syntax-button-like" onclick="performUndo()">되돌리기</button> 
+            <button class="syntax-button-like" onclick="resetFindReplace()">초기화</button>
+          </div>
         </div>
-
         <div class="section main-editor-area">
           <textarea id="mainTextArea" placeholder="여기는 문서로 작성할 내용을 입력하는 부분입니다."></textarea>
         </div>
-
         <div class="section" style="flex-shrink: 1; flex-grow: 0; min-height: 100px; display: flex; flex-direction: column; ">
-            <textarea id="memoTextArea" placeholder="여기는 본문 작성시에 참고할 내용을 메모하는 부분입니다.&#10;문서로 작성되지 않습니다."></textarea>
+          <textarea id="memoTextArea" placeholder="여기는 본문 작성시에 참고할 내용을 메모하는 부분입니다.&#10;문서로 작성되지 않습니다."></textarea>
         </div>
-
-        <div class="action-buttons"><button class="open-drive" onclick="showCustomAlert('준비 중인 기능입니다.')">Google Drive</button><button class="load-file" onclick="showCustomAlert('준비 중인 기능입니다.')">불러오기</button><button class="save-draft" onclick="showCustomAlert('준비 중인 기능입니다.')">저장<small style="font-weight: normal; margin-left: 3px;">[Ctrl+S]</small></button><button class="create-doc" onclick="createWordClientSide()">문서작성</button><button class="delete-all" onclick="clearTextArea()">전체삭제</button></div>
-
+        <div class="action-buttons">
+            <button class="open-drive" onclick="showCustomAlert('준비 중인 기능입니다.')">Google Drive</button>
+            <button class="load-file" onclick="showCustomAlert('준비 중인 기능입니다.')">불러오기</button>
+            <button class="save-draft" onclick="showCustomAlert('준비 중인 기능입니다.')">저장<small style="font-weight: normal; margin-left: 3px;">[Ctrl+S]</small></button>
+            <button class="create-doc" onclick="createWordClientSide()">문서작성</button>
+            <button class="delete-all" onclick="clearTextArea()">전체삭제</button>
+        </div>
       </div>
       <div id="loadingPopup" class="loading-popup" style="display: none;"> 
         <div class="loading-popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
@@ -423,15 +555,30 @@ function getEditorHtml() {
     `;
 }
 
-// ==================================================================
-// SECTION 2: 편집기 및 UI 로직 함수
-// ==================================================================
+function getAiChatHtml() {
+    return `
+      <div class="chat-container">
+        <div class="chat-messages">
+          <div class="message message-assistant">
+             <div class="message-content">안녕하세요! 무엇을 도와드릴까요? 파일을 업로드하거나, 아래 입력창에 질문을 입력해주세요.</div>
+          </div>
+        </div>
+        <div class="chat-input-section">
+          <div class="chat-input-wrapper">
+            <div class="file-preview-container"></div>
+            <textarea class="message-input" placeholder="여기에 메시지 입력... (Shift+Enter로 줄바꿈)" rows="1"></textarea>
+            <input type="file" class="file-input" multiple hidden accept="*/*">
+            <button class="chat-tool-btn upload-btn" title="파일 업로드">📎</button>
+            <button class="chat-tool-btn send-btn" title="보내기">➤</button>
+          </div>
+        </div>
+      </div>
+    `;
+}
 
-// --- 전역 변수 선언 ---
-let mainTextArea, memoTextArea, docTitleInput, fontFamilySelect, fontSizeInput, lineSpacingInput, paraSpacingAfterInput, loadingPopup, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput;
-let undoStack = [];
-let loadingTimerIntervalId = null;
-let loadingStartTime = 0;
+// ==================================================================
+// SECTION 2: UI 로직 및 핵심 기능 함수
+// ==================================================================
 
 // --- UI 피드백 함수 (팝업, 로딩) ---
 function showLoadingPopup() { if (!loadingPopup) return; loadingPopup.style.display = 'flex'; loadingStartTime = Date.now(); const timeDisplay = document.getElementById('loadingTimeElapsed'); if (timeDisplay) timeDisplay.textContent = '[0.00 Sec]'; if (loadingTimerIntervalId) clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = setInterval(() => { const elapsedTimeMs = Date.now() - loadingStartTime; if (timeDisplay) timeDisplay.textContent = `[${(elapsedTimeMs / 1000).toFixed(2)} Sec]`; }, 100); }
@@ -439,127 +586,107 @@ function hideLoadingPopup() { if (!loadingPopup) return; loadingPopup.style.disp
 function showCustomAlert(message) { const popup = document.getElementById('customAlert'); const messageEl = document.getElementById('customAlertMessage'); const okButton = document.getElementById('customAlertOkButton'); if (!popup || !messageEl || !okButton) return; messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => popup.style.display = 'none'; }
 function showCustomConfirm(message) { const popup = document.getElementById('customConfirm'); const messageEl = document.getElementById('customConfirmMessage'); const okButton = document.getElementById('customConfirmOkButton'); const cancelButton = document.getElementById('customConfirmCancelButton'); if (!popup || !messageEl || !okButton || !cancelButton) return Promise.reject(); return new Promise((resolve, reject) => { messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => { popup.style.display = 'none'; resolve(true); }; cancelButton.onclick = () => { popup.style.display = 'none'; reject(false); }; }); }
 
-// --- 핵심 편집 기능 (문서 생성, 저장, 불러오기) ---
+// --- 핵심 편집 기능 ---
 function createDocument() { if (!mainTextArea) return; showLoadingPopup(); let docTitle = docTitleInput.value.trim(); if (!docTitle) { docTitle = generateFilename('[작성]'); } const settings = { fontFamily: fontFamilySelect.value, fontSize: fontSizeInput.value, lineSpacing: lineSpacingInput.value, paraSpacingAfter: paraSpacingAfterInput.value, pageOrientation: document.getElementById('pageOrientation').value, marginTop: marginTopInput.value, marginBottom: marginBottomInput.value, marginLeft: marginLeftInput.value, marginRight: marginRightInput.value }; const payload = { content: mainTextArea.value, memoContent: memoTextArea.value }; google.script.run.withSuccessHandler(onCreateDocSuccess).withFailureHandler(onFailure).createDocumentInDrive(payload, docTitle, settings); }
 function saveDraft() { if (!mainTextArea) return; showLoadingPopup(); let docTitle = docTitleInput.value.trim(); if (!docTitle) { docTitle = generateFilename('[저장]'); } const settings = { fontFamily: fontFamilySelect.value, fontSize: fontSizeInput.value, lineSpacing: lineSpacingInput.value, paraSpacingAfter: paraSpacingAfterInput.value, pageOrientation: document.getElementById('pageOrientation').value, marginTop: marginTopInput.value, marginBottom: marginBottomInput.value, marginLeft: marginLeftInput.value, marginRight: marginRightInput.value }; const payload = { content: mainTextArea.value, memoContent: memoTextArea.value, settings: settings }; google.script.run.withSuccessHandler(message => { hideLoadingPopup(); showCustomAlert(message); }).withFailureHandler(onFailure).saveDraftToServer(payload, docTitle); }
-function loadTextFileList() { showLoadingPopup(); google.script.run.withSuccessHandler(showFileListPopup).withFailureHandler(onFailure).getRecentTxtFilesFromDrive(); }
-function showFileListPopup(fileList) { hideLoadingPopup(); if (!fileList || fileList.length === 0) { showCustomAlert("저장된 TXT 파일이 없습니다."); return; } const listHtml = fileList.map(file => `<div style="margin-bottom:6px;"><button onclick="loadTxtFile('${file.id}', this)" title="${file.name}" style="width:100%;padding:6px 10px;font-size:13px;border:1px solid black;border-radius:5px;background:#fff;text-align:left;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${file.name}</button></div>`).join(""); const wrapper = document.createElement('div'); wrapper.id = "loadFileModal"; Object.assign(wrapper.style, { position: "fixed", top: "60px", left: "50%", transform: "translateX(-50%)", background: "#fff", border: "1px solid #444", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", borderRadius: "8px", zIndex: "10000", width: "calc(100% - 40px)", maxWidth: "840px", maxHeight: "80vh", display: "flex", flexDirection: "column" }); wrapper.innerHTML = `<div style="padding:16px 20px;border-bottom:1px solid black;font-size:17px;font-weight:bold;text-align:center;background:#f9f9f9;">불러오기</div><div style="flex:1;overflow-y:auto;padding:16px 20px;">${listHtml}</div><div style="padding:12px 20px;border-top:1px solid black;text-align:right;background:#f9f9f9;"><button onclick="document.getElementById('loadFileModal').remove()" style="padding:6px 14px;font-size:13px;background:#444;color:white;border:none;border-radius:4px;">닫기</button></div>`; document.body.appendChild(wrapper); }
-function loadTxtFile(fileId, buttonElement) { showLoadingPopup(); google.script.run.withSuccessHandler(result => { hideLoadingPopup(); const modal = document.getElementById("loadFileModal"); if (modal) modal.remove(); if (!result) return; docTitleInput.value = result.name.replace(/\[저장\]\s*/, "").replace(/_\d{4}-\d{2}-\d{2} \d{2}꞉\d{2}\.txt$/, "").replace(/\.txt$/, ""); try { const data = JSON.parse(result.content); mainTextArea.value = data.content || ''; memoTextArea.value = data.memoContent || ''; if (data.settings) { fontFamilySelect.value = data.settings.fontFamily || 'Batang'; fontSizeInput.value = data.settings.fontSize || '12'; lineSpacingInput.value = data.settings.lineSpacing || '1.5'; paraSpacingAfterInput.value = data.settings.paraSpacingAfter || '10'; document.getElementById('pageOrientation').value = data.settings.pageOrientation || 'PORTRAIT'; marginTopInput.value = data.settings.marginTop || '2.0'; marginBottomInput.value = data.settings.marginBottom || '2.0'; marginLeftInput.value = data.settings.marginLeft || '2.5'; marginRightInput.value = data.settings.marginRight || '2.5'; } showCustomAlert("파일과 설정을 불러왔습니다."); } catch (e) { mainTextArea.value = result.content; showCustomAlert("파일을 불러왔습니다. (설정값 미포함)"); } }).withFailureHandler(onFailure).getTxtFileContent(fileId); }
 async function clearTextArea() { if (!mainTextArea) return; try { await showCustomConfirm('문서 제목, 내용, 메모를 전체 삭제하시겠습니까?'); mainTextArea.value = ''; memoTextArea.value = ''; docTitleInput.value = ''; showCustomAlert('제목, 내용, 메모가 모두 삭제되었습니다.'); } catch (error) { console.log('삭제 취소'); } }
 
 // --- 찾기/바꾸기 및 실행 취소 ---
-
-function simpleFindNext() {
-    const term = document.getElementById('simpleFindText').value;
-    if (!term) {
-        showCustomAlert('찾을 단어를 입력하세요.');
-        return;
-    }
-
-    // 1. 현재 선택된 영역 바로 뒤부터 검색을 시작합니다.
-    let searchStartIndex = mainTextArea.selectionEnd;
-    let foundIndex = mainTextArea.value.indexOf(term, searchStartIndex);
-
-    // 2. 만약 위에서 못 찾았다면, 문서 처음부터 다시 검색합니다 (순환 검색).
-    if (foundIndex === -1) {
-        // 이전에 선택된 위치와 겹치는지 확인하기 위해 처음부터 다시 검색합니다.
-        const wrapAroundIndex = mainTextArea.value.indexOf(term, 0);
-
-        // 만약 처음부터 검색해도 결과가 없거나, 결과가 현재 선택된 것과 같다면
-        // 이는 더 이상 새로운 검색 결과가 없다는 의미입니다.
-        if (wrapAroundIndex === -1 || wrapAroundIndex === mainTextArea.selectionStart) {
-            showCustomAlert('"' + term + '" 을(를) 문서에서 찾을 수 없습니다.');
-            return;
-        }
-        // 처음부터 검색한 결과를 최종 결과로 사용합니다.
-        foundIndex = wrapAroundIndex;
-    }
-    
-    // 3. 최종적으로 찾은 위치가 있다면, 팝업 없이 해당 텍스트를 선택합니다.
-    mainTextArea.focus();
-    mainTextArea.setSelectionRange(foundIndex, foundIndex + term.length);
-}
-
-function simpleReplaceCurrent() { const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; if (start === end || mainTextArea.value.substring(start, end) !== term) { simpleFindNext(); return; } undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); const before = mainTextArea.value.substring(0, start); const after = mainTextArea.value.substring(end); mainTextArea.value = before + replacement + after; mainTextArea.setSelectionRange(start, start + replacement.length); simpleFindNext(); }
-async function previewSelectionBeforeReplaceAll() { const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; if (!term) { showCustomAlert("찾을 단어를 입력하세요."); return; } const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; const scope = (start !== end) ? "선택된 영역" : "전체 문서"; try { await showCustomConfirm(`'${term}' 을(를) '${replacement}' (으)로 ${scope}에서 모두 바꾸시겠습니까?`); undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); let count = 0; const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'); if (scope === "선택된 영역") { const before = mainTextArea.value.substring(0, start); const selected = mainTextArea.value.substring(start, end); const after = mainTextArea.value.substring(end); const replacedText = selected.replace(regex, () => { count++; return replacement; }); mainTextArea.value = before + replacedText + after; mainTextArea.setSelectionRange(start, start + replacedText.length); } else { mainTextArea.value = mainTextArea.value.replace(regex, () => { count++; return replacement; }); } showCustomAlert(`총 ${count}개를 바꿨습니다.`); } catch (error) { console.log('모두 바꾸기 취소'); } }
-function resetFindReplace() { document.getElementById('simpleFindText').value = ''; document.getElementById('simpleReplaceText').value = ''; mainTextArea.focus(); }
-function performUndo() {
-    if (undoStack.length > 0) {
-        const previous = undoStack.pop();
-        mainTextArea.value = previous.value;
-        mainTextArea.setSelectionRange(previous.selectionStart, previous.selectionEnd);
-        mainTextArea.focus();
-    }
-}
+function simpleFindNext() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; if (!term) { showCustomAlert('찾을 단어를 입력하세요.'); return; } let searchStartIndex = mainTextArea.selectionEnd; let foundIndex = mainTextArea.value.indexOf(term, searchStartIndex); if (foundIndex === -1) { const wrapAroundIndex = mainTextArea.value.indexOf(term, 0); if (wrapAroundIndex === -1 || wrapAroundIndex === mainTextArea.selectionStart) { showCustomAlert('"' + term + '" 을(를) 문서에서 찾을 수 없습니다.'); return; } foundIndex = wrapAroundIndex; } mainTextArea.focus(); mainTextArea.setSelectionRange(foundIndex, foundIndex + term.length); }
+function simpleReplaceCurrent() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; if (start === end || mainTextArea.value.substring(start, end) !== term) { simpleFindNext(); return; } undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); const before = mainTextArea.value.substring(0, start); const after = mainTextArea.value.substring(end); mainTextArea.value = before + replacement + after; mainTextArea.setSelectionRange(start, start + replacement.length); simpleFindNext(); }
+async function previewSelectionBeforeReplaceAll() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; if (!term) { showCustomAlert("찾을 단어를 입력하세요."); return; } const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; const scope = (start !== end) ? "선택된 영역" : "전체 문서"; try { await showCustomConfirm(`'${term}' 을(를) '${replacement}' (으)로 ${scope}에서 모두 바꾸시겠습니까?`); undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); let count = 0; const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'); if (scope === "선택된 영역") { const before = mainTextArea.value.substring(0, start); const selected = mainTextArea.value.substring(start, end); const after = mainTextArea.value.substring(end); const replacedText = selected.replace(regex, () => { count++; return replacement; }); mainTextArea.value = before + replacedText + after; mainTextArea.setSelectionRange(start, start + replacedText.length); } else { mainTextArea.value = mainTextArea.value.replace(regex, () => { count++; return replacement; }); } showCustomAlert(`총 ${count}개를 바꿨습니다.`); } catch (error) { console.log('모두 바꾸기 취소'); } }
+function resetFindReplace() { if (!mainTextArea) return; document.getElementById('simpleFindText').value = ''; document.getElementById('simpleReplaceText').value = ''; mainTextArea.focus(); }
+function performUndo() { if (undoStack.length > 0) { const previous = undoStack.pop(); mainTextArea.value = previous.value; mainTextArea.setSelectionRange(previous.selectionStart, previous.selectionEnd); mainTextArea.focus(); } }
 
 // --- 유틸리티 및 보조 함수 ---
 function generateFilename(prefix) { const now = new Date(); const yymmdd = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0'); const hhmmss = now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0') + now.getSeconds().toString().padStart(2, '0'); return `${prefix}제목없음_${yymmdd}_T${hhmmss}`; }
 function insertSyntax(syntax) { if (!mainTextArea) return; const { scrollTop, selectionStart, selectionEnd, value } = mainTextArea; mainTextArea.value = value.substring(0, selectionStart) + syntax + value.substring(selectionEnd); mainTextArea.focus(); mainTextArea.selectionStart = mainTextArea.selectionEnd = selectionStart + syntax.length; mainTextArea.scrollTop = scrollTop; }
-function openGoogleDrive() { showLoadingPopup(); google.script.run.withSuccessHandler(folderUrl => { hideLoadingPopup(); if (folderUrl) window.open(folderUrl, "_blank"); else showCustomAlert("폴더 열기에 실패했습니다."); }).withFailureHandler(onFailure).getOrCreateSaeroDraftFolderUrl(); }
-function onFailure(error) { hideLoadingPopup(); showCustomAlert('오류가 발생했습니다: ' + error.message); }
-function onCreateDocSuccess(payload) { hideLoadingPopup(); if (payload && payload.base64Data) { triggerBrowserDownload(payload); } else if (payload && payload.googleDocUrl) { window.open(payload.googleDocUrl, '_blank'); showCustomAlert('Google 문서 생성을 완료했습니다 (Word 변환은 실패).'); } else { onFailure({ message: "서버로부터 유효한 응답을 받지 못했습니다." }); } }
-function triggerBrowserDownload(payload) { const decodedData = atob(payload.base64Data); const byteNumbers = new Array(decodedData.length); for (let i = 0; i < decodedData.length; i++) { byteNumbers[i] = decodedData.charCodeAt(i); } const byteArray = new Uint8Array(byteNumbers); const blob = new Blob([byteArray], { type: payload.mimeType }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.style.display = 'none'; a.href = url; a.download = payload.fileName; document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); document.body.removeChild(a); showCustomAlert(`'${payload.fileName}' 파일 다운로드가 시작되었습니다.`); }
 function handleContextScroll(isScrollingDown) { if (!mainTextArea) return; const computedStyle = window.getComputedStyle(mainTextArea); const lineHeight = parseFloat(computedStyle.lineHeight); const scrollAmount = mainTextArea.clientHeight - (3 * lineHeight); let newScrollTop = isScrollingDown ? mainTextArea.scrollTop + scrollAmount : mainTextArea.scrollTop - scrollAmount; mainTextArea.scrollTo({ top: newScrollTop, behavior: 'smooth' }); }
+async function createWordClientSide() {
+    showLoadingPopup();
+    const title = docTitleInput.value.trim();
+    const content = mainTextArea.value;
+    const settings = {
+        font_family_east_asia: fontFamilySelect.value,
+        font_size: parseFloat(fontSizeInput.value) || 12,
+        line_spacing: parseFloat(lineSpacingInput.value) || 1.5,
+        para_spacing_after: parseFloat(paraSpacingAfterInput.value) || 10,
+        page_orientation: document.getElementById('pageOrientation').value,
+        margin_top: parseFloat(marginTopInput.value) || 2.0,
+        margin_bottom: parseFloat(marginBottomInput.value) || 2.0,
+        margin_left: parseFloat(marginLeftInput.value) || 2.5,
+        margin_right: parseFloat(marginRightInput.value) || 2.5,
+    };
+    try {
+        const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app";
+        const response = await fetch(`${BACKEND_URL}/create-docx`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify({ content: content, settings: settings, title: title }),
+        });
+        hideLoadingPopup();
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            let fileName = title ? `${title}.docx` : 'generated_document.docx';
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            showCustomAlert(`'${fileName}' 파일 다운로드가 시작됩니다.`);
+        } else {
+            const error = await response.json();
+            showCustomAlert('파일 생성 중 오류 발생: ' + error.error);
+        }
+    } catch (error) {
+        hideLoadingPopup();
+        console.error('Error:', error);
+        showCustomAlert('백엔드 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
+}
+
 
 // ==================================================================
-// SECTION 3: 탭 컴포넌트 생성 및 관리
+// SECTION 3: 탭 컴포넌트 관리 함수
 // ==================================================================
 
-function createTabComponent(targetSelector, title, initialContentHtml) {
+/**
+ * [업그레이드 버전] 범용 탭 컴포넌트 생성 함수
+ */
+function createTabComponent(targetSelector, title, initialContentHtml, onTabActivated) {
     const container = document.querySelector(targetSelector);
     if (!container) {
         console.error(targetSelector + ' 요소를 찾을 수 없습니다.');
         return;
     }
-
-    // 1. 초기 HTML 구조를 설정합니다.
     container.innerHTML = `<div style="padding: 5px 0 0 5px; font-weight: 600;"><span>${title}</span></div><div class="tab-content-area"><div class="tab-content-pane active" data-tab-id="tab1">${initialContentHtml}</div></div><div class="tab-bar"><div class="tab-nav-start"><div class="tab-nav-button tab-scroll-btn" data-direction="-1">◀</div></div><div class="tab-list"><div class="tab active" data-tab-id="tab1"><span>tab1</span><span class="close-tab">×</span></div></div><div class="tab-controls"><div class="tab-nav-button add-tab-btn">+</div><div class="tab-nav-button tab-scroll-btn" data-direction="1">▶</div></div></div>`;
-
-    // 2. 필요한 DOM 요소들을 변수에 할당합니다.
+    
     const tabList = container.querySelector('.tab-list');
     const tabContentArea = container.querySelector('.tab-content-area');
     const addButton = container.querySelector('.add-tab-btn');
     let tabCounter = 1;
 
-    // 3. [핵심] 탭을 활성화하고 관련 변수를 초기화하는 함수를 만듭니다.
     function activateTab(tabToActivate) {
         if (!tabToActivate) return;
-
-        // 모든 탭과 내용의 'active' 클래스 제거
         tabList.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         tabContentArea.querySelectorAll('.tab-content-pane').forEach(p => p.classList.remove('active'));
-
-        // 선택된 탭과 내용에 'active' 클래스 추가
         tabToActivate.classList.add('active');
         const correspondingPane = tabContentArea.querySelector(`[data-tab-id="${tabToActivate.dataset.tabId}"]`);
         if (correspondingPane) {
             correspondingPane.classList.add('active');
-        }
-
-        // Editor 탭의 경우, 활성화된 탭 내부의 요소들을 전역 변수에 다시 할당합니다.
-        if (container.classList.contains('Section2-3')) {
-            const activePane = tabContentArea.querySelector('.tab-content-pane.active');
-            if (activePane) {
-                mainTextArea = activePane.querySelector('#mainTextArea');
-                memoTextArea = activePane.querySelector('#memoTextArea');
-                docTitleInput = activePane.querySelector('#docTitle');
-                fontFamilySelect = activePane.querySelector('#fontFamily');
-                fontSizeInput = activePane.querySelector('#fontSize');
-                lineSpacingInput = activePane.querySelector('#lineSpacing');
-                paraSpacingAfterInput = activePane.querySelector('#paraSpacingAfter');
-                marginTopInput = activePane.querySelector('#marginTop');
-                marginBottomInput = activePane.querySelector('#marginBottom');
-                marginLeftInput = activePane.querySelector('#marginLeft');
-                marginRightInput = activePane.querySelector('#marginRight');
+            if (onTabActivated && typeof onTabActivated === 'function') {
+                onTabActivated(correspondingPane);
             }
         }
     }
-
-    // 4. 새 탭 추가(+) 버튼에 대한 이벤트 리스너입니다.
+    
     addButton.addEventListener('click', () => {
         tabCounter++;
         const newTabId = `tab${tabCounter}`;
-
         const newTab = document.createElement('div');
         newTab.className = 'tab';
         newTab.dataset.tabId = newTabId;
@@ -568,26 +695,26 @@ function createTabComponent(targetSelector, title, initialContentHtml) {
         const newPane = document.createElement('div');
         newPane.className = 'tab-content-pane';
         newPane.dataset.tabId = newTabId;
-
+        
+        // Editor와 Prompter는 서로 다른 내용을 가질 수 있으므로, initialContentHtml을 기반으로 새 탭을 만듭니다.
+        // 여기서는 간단하게 Editor의 HTML을 재사용하는 것으로 가정합니다. 더 복잡한 로직이 필요하면 수정이 필요합니다.
         if (container.classList.contains('Section2-3')) {
             newPane.innerHTML = getEditorHtml();
         } else {
-            newPane.innerHTML = `<p>${newTabId}의 새로운 콘텐츠 영역입니다.</p>`;
+             newPane.innerHTML = getPrompterListHtml();
         }
+
 
         tabList.appendChild(newTab);
         tabContentArea.appendChild(newPane);
-        
-        activateTab(newTab); // 새로 만든 탭을 활성화합니다.
+        activateTab(newTab);
         tabList.scrollLeft = tabList.scrollWidth;
     });
 
-    // 5. 탭 목록(탭 전환, 닫기)에 대한 이벤트 리스너입니다.
     tabList.addEventListener('click', (event) => {
         const target = event.target;
-
         if (target.classList.contains('close-tab')) {
-            event.stopPropagation(); // 탭 전환 이벤트가 함께 실행되는 것을 방지
+            event.stopPropagation();
             const tabToRemove = target.closest('.tab');
             if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('마지막 탭은 닫을 수 없습니다.'); }
             
@@ -595,24 +722,21 @@ function createTabComponent(targetSelector, title, initialContentHtml) {
             if (tabToRemove.classList.contains('active')) {
                 nextTabToActivate = tabToRemove.previousElementSibling || tabToRemove.nextElementSibling;
             }
-
             const paneToRemove = tabContentArea.querySelector(`[data-tab-id="${tabToRemove.dataset.tabId}"]`);
             tabToRemove.remove();
-            paneToRemove.remove();
+            if(paneToRemove) paneToRemove.remove();
             
             if (nextTabToActivate) {
                 activateTab(nextTabToActivate);
             }
             return;
         }
-
         const clickedTab = target.closest('.tab');
         if (clickedTab && !clickedTab.classList.contains('active')) {
             activateTab(clickedTab);
         }
     });
 
-    // 6. 탭 이름 더블클릭 수정 이벤트 리스너 (기존과 동일)
     tabList.addEventListener('dblclick', (event) => {
         const target = event.target;
         if (!target.matches('.tab > span:first-of-type')) { return; }
@@ -646,13 +770,10 @@ function createTabComponent(targetSelector, title, initialContentHtml) {
         };
         tempInput.addEventListener('blur', finishEditing);
         tempInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                finishEditing();
-            }
+            if (e.key === 'Enter') finishEditing();
         });
     });
     
-    // 7. 탭 스크롤 버튼 이벤트 리스너 (기존과 동일)
     container.querySelectorAll('.tab-scroll-btn').forEach(button => {
         button.addEventListener('click', () => {
             const direction = parseInt(button.dataset.direction, 10);
@@ -661,40 +782,244 @@ function createTabComponent(targetSelector, title, initialContentHtml) {
         });
     });
 
-    // 8. [중요] 컴포넌트가 처음 생성될 때, 첫 번째 탭의 변수들을 초기화합니다.
+    activateTab(container.querySelector('.tab.active'));
+}
+
+/**
+ * AI 채팅 컴포넌트의 모든 로직을 관리하는 독립 함수
+ */
+function initializeAiChatComponent(targetSelector, title) {
+    const container = document.querySelector(targetSelector);
+    if (!container) return;
+    const initialContentHtml = getAiChatHtml();
+    container.innerHTML = `<div style="padding: 5px 0 0 5px; font-weight: 600;"><span>${title}</span></div><div class="tab-content-area"><div class="tab-content-pane active" data-tab-id="tab1">${initialContentHtml}</div></div><div class="tab-bar"><div class="tab-nav-start"><div class="tab-nav-button tab-scroll-btn" data-direction="-1">◀</div></div><div class="tab-list"><div class="tab active" data-tab-id="tab1"><span>tab1</span><span class="close-tab">×</span></div></div><div class="tab-controls"><div class="tab-nav-button add-tab-btn">+</div><div class="tab-nav-button tab-scroll-btn" data-direction="1">▶</div></div></div>`;
+
+    const tabList = container.querySelector('.tab-list');
+    const tabContentArea = container.querySelector('.tab-content-area');
+    const addButton = container.querySelector('.add-tab-btn');
+    let tabCounter = 1;
+
+    const setupChatPane = (chatPane) => {
+        if (chatPane.dataset.chatInitialized) return;
+        const messagesContainer = chatPane.querySelector('.chat-messages');
+        const messageInput = chatPane.querySelector('.message-input');
+        const sendButton = chatPane.querySelector('.send-btn');
+        const uploadButton = chatPane.querySelector('.upload-btn');
+        const fileInput = chatPane.querySelector('.file-input');
+        const filePreviewContainer = chatPane.querySelector('.file-preview-container');
+        let uploadedFiles = [];
+
+        const sendMessage = () => {
+            const messageText = messageInput.value.trim();
+            if (messageText === '' && uploadedFiles.length === 0) return;
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message message-user';
+            let messageHTML = `<div class="message-content">${messageText.replace(/\n/g, '<br>')}</div>`;
+            if (uploadedFiles.length > 0) {
+                 const filesHTML = uploadedFiles.map(file => `<div>- ${file.name}</div>`).join('');
+                 messageHTML = `<div class="message-content">${filesHTML}<br>${messageText.replace(/\n/g, '<br>')}</div>`;
+            }
+            userMessageDiv.innerHTML = messageHTML;
+            messagesContainer.appendChild(userMessageDiv);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            filePreviewContainer.innerHTML = '';
+            const currentFiles = [...uploadedFiles];
+            uploadedFiles = [];
+            setTimeout(() => {
+                const assistantMessageDiv = document.createElement('div');
+                assistantMessageDiv.className = 'message message-assistant';
+                let responseText = `"${messageText}" 라고 하셨네요.`;
+                if (currentFiles.length > 0) {
+                     responseText += `\n\n업로드된 파일(${currentFiles.length}개)도 함께 처리하겠습니다.`;
+                }
+                assistantMessageDiv.innerHTML = `<div class="message-content">${responseText.replace(/\n/g, '<br>')}</div>`;
+                messagesContainer.appendChild(assistantMessageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 500);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+
+        const handleFiles = (files) => {
+            if (uploadedFiles.length + files.length > 10) { showCustomAlert('파일은 최대 10개까지 업로드할 수 있습니다.'); return; }
+            for (const file of files) {
+                uploadedFiles.push(file);
+                const previewItem = document.createElement('div');
+                previewItem.className = 'file-preview-item';
+                previewItem.innerHTML = `<span>${file.name}</span><span class="remove-file-btn" title="파일 제거">×</span>`;
+                previewItem.querySelector('.remove-file-btn').onclick = () => {
+                    uploadedFiles = uploadedFiles.filter(f => f !== file);
+                    previewItem.remove();
+                };
+                filePreviewContainer.appendChild(previewItem);
+            }
+        };
+
+        sendButton.onclick = sendMessage;
+        uploadButton.onclick = () => fileInput.click();
+        fileInput.onchange = () => { handleFiles(fileInput.files); fileInput.value = ''; };
+        messageInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+        messageInput.oninput = () => { messageInput.style.height = 'auto'; messageInput.style.height = `${messageInput.scrollHeight}px`; };
+        const chatContainer = chatPane.querySelector('.chat-container');
+        chatContainer.ondragover = (e) => { e.preventDefault(); chatContainer.style.backgroundColor = '#e9ecef'; };
+        chatContainer.ondragleave = (e) => { e.preventDefault(); chatContainer.style.backgroundColor = '#fff'; };
+        chatContainer.ondrop = (e) => { e.preventDefault(); chatContainer.style.backgroundColor = '#fff'; if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); };
+        messageInput.onpaste = (e) => { if (e.clipboardData.files.length > 0) { e.preventDefault(); handleFiles(e.clipboardData.files); } };
+        chatPane.dataset.chatInitialized = 'true';
+    };
+
+    const activateTab = (tabToActivate) => {
+        if (!tabToActivate) return;
+        tabList.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContentArea.querySelectorAll('.tab-content-pane').forEach(p => p.classList.remove('active'));
+        tabToActivate.classList.add('active');
+        const correspondingPane = tabContentArea.querySelector(`[data-tab-id="${tabToActivate.dataset.tabId}"]`);
+        if (correspondingPane) {
+            correspondingPane.classList.add('active');
+            setupChatPane(correspondingPane);
+        }
+    };
+    
+    addButton.addEventListener('click', () => {
+        tabCounter++;
+        const newTabId = `tab${tabCounter}`;
+        const newTab = document.createElement('div');
+        newTab.className = 'tab';
+        newTab.dataset.tabId = newTabId;
+        newTab.innerHTML = `<span>${newTabId}</span><span class="close-tab">×</span>`;
+        const newPane = document.createElement('div');
+        newPane.className = 'tab-content-pane';
+        newPane.dataset.tabId = newTabId;
+        newPane.innerHTML = getAiChatHtml();
+        tabList.appendChild(newTab);
+        tabContentArea.appendChild(newPane);
+        activateTab(newTab);
+        tabList.scrollLeft = tabList.scrollWidth;
+    });
+    
+    tabList.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target.classList.contains('close-tab')) {
+            event.stopPropagation();
+            const tabToRemove = target.closest('.tab');
+            if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('마지막 탭은 닫을 수 없습니다.'); }
+            let nextTabToActivate = null;
+            if (tabToRemove.classList.contains('active')) {
+                nextTabToActivate = tabToRemove.previousElementSibling || tabToRemove.nextElementSibling;
+            }
+            const paneToRemove = tabContentArea.querySelector(`[data-tab-id="${tabToRemove.dataset.tabId}"]`);
+            tabToRemove.remove();
+            if(paneToRemove) paneToRemove.remove();
+            if (nextTabToActivate) {
+                activateTab(nextTabToActivate);
+            }
+            return;
+        }
+        const clickedTab = target.closest('.tab');
+        if (clickedTab && !clickedTab.classList.contains('active')) {
+            activateTab(clickedTab);
+        }
+    });
+
+    tabList.addEventListener('dblclick', (event) => {
+        const target = event.target;
+        if (!target.matches('.tab > span:first-of-type')) { return; }
+        const currentSpan = target;
+        const currentName = currentSpan.textContent;
+        const tempInput = document.createElement('input');
+        tempInput.type = 'text';
+        tempInput.value = currentName;
+        tempInput.className = 'tab-edit-input';
+        currentSpan.style.display = 'none';
+        currentSpan.after(tempInput);
+        tempInput.focus();
+        tempInput.select();
+        const finishEditing = () => {
+            let newName = tempInput.value.trim();
+            if (!newName) { currentSpan.textContent = currentName; }
+            else {
+                const otherTabSpans = [...tabList.querySelectorAll('.tab > span:first-of-type')].filter(span => span !== currentSpan);
+                const existingNames = otherTabSpans.map(span => span.textContent);
+                let finalName = newName;
+                let counter = 2;
+                while (existingNames.includes(finalName)) {
+                    finalName = `${newName} (${counter})`;
+                    counter++;
+                }
+                currentSpan.textContent = finalName;
+            }
+            tempInput.remove();
+            currentSpan.style.display = '';
+        };
+        tempInput.addEventListener('blur', finishEditing);
+        tempInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') finishEditing();
+        });
+    });
+
+    container.querySelectorAll('.tab-scroll-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const direction = parseInt(button.dataset.direction, 10);
+            const scrollAmount = 200;
+            tabList.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+        });
+    });
+    
     activateTab(container.querySelector('.tab.active'));
 }
 
 
 // ==================================================================
-// SECTION 4: 페이지 초기화 및 전역 이벤트 리스너
+// SECTION 4: 페이지 초기화 및 기능별 담당 함수
 // ==================================================================
 
-function initializeEditorVariables() {
-    mainTextArea = document.getElementById('mainTextArea');
-    memoTextArea = document.getElementById('memoTextArea');
-    docTitleInput = document.getElementById('docTitle');
-    fontFamilySelect = document.getElementById('fontFamily');
-    fontSizeInput = document.getElementById('fontSize');
-    lineSpacingInput = document.getElementById('lineSpacing');
-    paraSpacingAfterInput = document.getElementById('paraSpacingAfter');
-    loadingPopup = document.getElementById('loadingPopup');
-    marginTopInput = document.getElementById('marginTop');
-    marginBottomInput = document.getElementById('marginBottom');
-    marginLeftInput = document.getElementById('marginLeft');
-    marginRightInput = document.getElementById('marginRight');
+/**
+ * 에디터 기능의 모든 초기화를 담당하는 함수
+ */
+function initEditorFeature() {
+    const onEditorTabActivated = (activePane) => {
+        mainTextArea = activePane.querySelector('#mainTextArea');
+        memoTextArea = activePane.querySelector('#memoTextArea');
+        docTitleInput = activePane.querySelector('#docTitle');
+        fontFamilySelect = activePane.querySelector('#fontFamily');
+        fontSizeInput = activePane.querySelector('#fontSize');
+        lineSpacingInput = activePane.querySelector('#lineSpacing');
+        paraSpacingAfterInput = activePane.querySelector('#paraSpacingAfter');
+        marginTopInput = activePane.querySelector('#marginTop');
+        marginBottomInput = activePane.querySelector('#marginBottom');
+        marginLeftInput = activePane.querySelector('#marginLeft');
+        marginRightInput = activePane.querySelector('#marginRight');
+    };
+    createTabComponent('.Section2-3', '■ Editor', getEditorHtml(), onEditorTabActivated);
 }
 
+/**
+ * AI 채팅 기능의 모든 초기화를 담당하는 함수
+ */
+function initAiChatFeature() {
+    initializeAiChatComponent('.Section2-2', '🔥 AI 채팅');
+}
+
+/**
+ * 프롬프터 기능의 초기화를 담당하는 함수
+ */
+function initPrompterFeature() {
+    createTabComponent('.Section2-1', '■ Prompter Selector', getPrompterListHtml(), null);
+}
+
+// ==================================================================
+// SECTION 5: DOM 로딩 완료 후 실행
+// ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 탭 컴포넌트들 생성
-    createTabComponent('.Section2-1', '■ Prompter Selector', getPrompterListHtml());
-    createTabComponent('.Section2-2', '🔥 AI 채팅', '<p>AI와 대화를 시작해보세요.</p>');
-    createTabComponent('.Section2-3', '■ Editor', getEditorHtml());
+    document.getElementById('user-name').textContent = userName;
+    document.getElementById('user-phone').textContent = userPhone;
+    
+    initPrompterFeature();
+    initAiChatFeature();
+    initEditorFeature();
 
-    // 2. 편집기 UI가 DOM에 추가된 후, 전역 변수에 DOM 요소 할당
-    initializeEditorVariables();
+    loadingPopup = document.getElementById('loadingPopup');
 
-    // 3. 전역 단축키 이벤트 리스너 설정
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
             event.preventDefault();
@@ -707,88 +1032,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 'n': '{제목행}', 'm': '{회색}', ',': '{남색}', '.': '{그림:~}'
             };
             const syntax = keyMap[event.key.toLowerCase()];
-            if (syntax) { insertSyntax(syntax); }
+            if (syntax && mainTextArea) { insertSyntax(syntax); }
         }
-
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
-            // '찾기/바꾸기'로 추가된 되돌리기 내용이 있을 경우에만 직접 처리
-            if (undoStack.length > 0) {
-                event.preventDefault(); // 브라우저 기본 동작 방지
-                performUndo();
-            }
-            // 되돌릴 내용이 없으면 아무것도 안 함 -> 브라우저가 기본 되돌리기(일반 텍스트 입력 취소) 실행
+            if (undoStack.length > 0) { event.preventDefault(); performUndo(); }
         }
-
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); saveDraft(); }
-        if (event.key === 'PageDown') { event.preventDefault(); handleContextScroll(true); }
-        if (event.key === 'PageUp') { event.preventDefault(); handleContextScroll(false); }
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); if (mainTextArea) saveDraft(); }
+        if (event.key === 'PageDown') { event.preventDefault(); if (mainTextArea) handleContextScroll(true); }
+        if (event.key === 'PageUp') { event.preventDefault(); if (mainTextArea) handleContextScroll(false); }
     });
 });
-
-async function createWordClientSide() {
-    showLoadingPopup(); // 로딩 팝업 표시
-
-    // 1. UI에서 모든 설정값 가져오기
-    const title = docTitleInput.value.trim();
-    const content = mainTextArea.value;
-    const settings = {
-        font_family_east_asia: fontFamilySelect.value,
-        font_size: parseFloat(fontSizeInput.value) || 12,
-        line_spacing: parseFloat(lineSpacingInput.value) || 1.5,
-        para_spacing_after: parseFloat(paraSpacingAfterInput.value) || 10,
-        page_orientation: document.getElementById('pageOrientation').value,
-        margin_top: parseFloat(marginTopInput.value) || 2.0,
-        margin_bottom: parseFloat(marginBottomInput.value) || 2.0,
-        margin_left: parseFloat(marginLeftInput.value) || 2.5,
-        margin_right: parseFloat(marginRightInput.value) || 2.5,
-    };
-    
-    // --- [핵심] Cloud Run 백엔드로 데이터 전송 ---
-    try {
-        // 2. 우리가 배포한 Cloud Run의 URL로 데이터를 POST 방식으로 보냅니다.
-        const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app"; // ❗ 실제 배포된 Cloud Run URL
-        
-        const response = await fetch(`${BACKEND_URL}/create-docx`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                content: content,
-                settings: settings,
-                title: title
-            }),
-        });
-
-        hideLoadingPopup(); // 로딩 팝업 숨기기
-
-        if (response.ok) {
-            // 3. 서버로부터 받은 파일 데이터(blob)를 다운로드합니다.
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            
-            let fileName = title ? `${title}.docx` : 'generated_document.docx';
-            a.download = fileName;
-            
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
-            showCustomAlert(`'${fileName}' 파일 다운로드가 시작됩니다.`);
-        } else {
-            const error = await response.json();
-            showCustomAlert('파일 생성 중 오류 발생: ' + error.error);
-        }
-    } catch (error) {
-        hideLoadingPopup();
-        console.error('Error:', error);
-        // 오류 메시지를 좀 더 명확하게 수정
-        showCustomAlert('백엔드 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
-    }
-}
     
 </script>
 
