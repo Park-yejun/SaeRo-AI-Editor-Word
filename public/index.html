@@ -314,22 +314,29 @@
     gap: 8px;
 }
 
-/* 복사 버튼 스타일 */
+/* 수정 후 코드 */
 .copy-btn {
     flex-shrink: 0;
-    border: 1px solid var(--border-color);
-    background-color: #fff;
+    border: none; /* 테두리 제거 */
+    background-color: transparent; /* 배경 투명하게 */
     color: var(--text-secondary-color);
     border-radius: 6px;
     width: 32px;
     height: 32px;
     cursor: pointer;
     font-size: 16px;
-    margin-top: 5px; /* 말풍선과 세로 위치 미세 조정 */
-    transition: background-color 0.2s;
+    margin-top: 5px;
+    transition: background-color 0.2s, color 0.2s; /* 색상 변경 애니메이션 추가 */
+    opacity: 0.5; /* 평소에는 반투명하게 */
 }
 .copy-btn:hover {
     background-color: #e9ecef;
+    color: var(--text-color); /* 마우스 올리면 진하게 */
+    opacity: 1; /* 마우스 올리면 불투명하게 */
+}
+/* 사용자 말풍선 쪽 복사 버튼은 왼쪽으로 이동 */
+.message-user .message-wrapper {
+    flex-direction: row-reverse; /* 내용과 버튼 순서 뒤집기 */
 }
     
 /* --- ▼▼▼ 핵심 수정 영역 ▼▼▼ --- */
@@ -947,12 +954,33 @@ function initializeAiChatComponent(targetSelector, title) {
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message message-user';
             
-            let messageHTML = `<div class="message-content">${messageText.replace(/\n/g, '<br>')}</div>`;
+            // ▼▼▼ 사용자 메시지에도 복사 버튼과 래퍼(wrapper)를 추가합니다. ▼▼▼
+            let messageHTML = '';
+            let contentToCopy = messageText; // 복사할 내용 기본값
+        
             if (uploadedFiles.length > 0) {
+                const filesText = uploadedFiles.map(f => `- ${f.name}`).join('\n');
+                contentToCopy = `${filesText}\n${messageText}`; // 복사 내용에 파일 목록 추가
                 const filesHTML = uploadedFiles.map(file => `<div>- ${file.name}</div>`).join('');
                 messageHTML = `<div class="message-content">${filesHTML}<br>${messageText.replace(/\n/g, '<br>')}</div>`;
+            } else {
+                messageHTML = `<div class="message-content">${messageText.replace(/\n/g, '<br>')}</div>`;
             }
-            userMessageDiv.innerHTML = messageHTML;
+        
+            userMessageDiv.innerHTML = `
+              <div class="message-wrapper">
+                ${messageHTML}
+                <button class="copy-btn" title="내용 복사">📋</button>
+              </div>
+            `;
+            
+            // 사용자 메시지의 복사 버튼에도 이벤트 리스너 추가
+            userMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
+                navigator.clipboard.writeText(contentToCopy)
+                    .then(() => showCustomAlert('채팅 내용이 복사되었습니다.'))
+                    .catch(err => console.error('복사 실패: ', err));
+            });
+        
             messagesContainer.appendChild(userMessageDiv);
             
             messageInput.value = '';
@@ -961,39 +989,32 @@ function initializeAiChatComponent(targetSelector, title) {
             const currentFiles = [...uploadedFiles];
             uploadedFiles = [];
             
-            // AI 응답 시뮬레이션
-
-            // 수정 후 코드
+            // AI 응답 시뮬레이션 (이 부분은 변경 없음)
             setTimeout(() => {
                 const assistantMessageDiv = document.createElement('div');
                 assistantMessageDiv.className = 'message message-assistant';
-            
                 let responseText = `"${messageText}" 라고 하셨네요.`;
                 if (currentFiles.length > 0) {
                     responseText += `\n\n업로드된 파일(${currentFiles.length}개)도 함께 처리하겠습니다.`;
                 }
-            
-                // ▼▼▼ 복사 버튼이 포함된 새로운 HTML 구조 ▼▼▼
                 assistantMessageDiv.innerHTML = `
                   <div class="message-wrapper">
                     <div class="message-content">${responseText.replace(/\n/g, '<br>')}</div>
                     <button class="copy-btn" title="내용 복사">📋</button>
                   </div>
                 `;
-                
-                // 복사 버튼에 이벤트 리스너 추가
                 assistantMessageDiv.querySelector('.copy-btn').addEventListener('click', () => {
                     navigator.clipboard.writeText(responseText)
                         .then(() => showCustomAlert('채팅 내용이 복사되었습니다.'))
                         .catch(err => console.error('복사 실패: ', err));
                 });
-            
                 messagesContainer.appendChild(assistantMessageDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 500);
+        
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         };
-
+        
         // 파일 처리 로직
         const handleFiles = (files) => {
             if (uploadedFiles.length + files.length > 10) {
