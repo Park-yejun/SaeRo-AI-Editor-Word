@@ -537,73 +537,6 @@
     from { background-position: 40px 0; }
     to { background-position: 0 0; }
 }
-
-/* [신규 추가] 커스텀 로그인 팝업 스타일 */
-.login-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20000;
-}
-
-.login-popup {
-    background-color: white;
-    padding: 40px 50px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    max-width: 420px;
-    width: 90%;
-}
-
-.login-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #333;
-    margin-top: 0;
-    margin-bottom: 15px;
-}
-
-.login-description {
-    font-size: 14px;
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 30px;
-}
-
-.google-signin-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 12px 24px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-    font-family: 'Roboto', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.google-signin-button:hover {
-    border-color: #ccc;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.google-signin-button img {
-    width: 20px;
-    height: 20px;
-}
     
 </style>
     
@@ -832,15 +765,6 @@ function performUndo() { if (undoStack.length > 0) { const previous = undoStack.
 
 // [신규] 로그인 팝업 표시/숨김 함수
 
-function showLoginPopup() {
-    document.getElementById('loginOverlay').style.display = 'flex';
-}
-    
-function hideLoginPopup() {
-    document.getElementById('loginOverlay').style.display = 'none';
-}
-
-// [교체] gisLoaded - 페이지 로딩 시 실행
 function gisLoaded() {
     // 1. 토큰 클라이언트 초기화
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -849,7 +773,7 @@ function gisLoaded() {
         callback: async (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
                 googleUser = { isSignedIn: () => true };
-                hideLoginPopup(); // 로그인 성공 시 팝업 숨김
+                // hideLoginPopup(); // 더 이상 필요 없으므로 삭제
                 updateLoginUI(true);
                 await loadAndApplySessionData();
             } else {
@@ -863,12 +787,12 @@ function gisLoaded() {
         gapi.client.init({
             discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
         }).then(() => {
-            // 모든 초기화가 끝난 후, 로그인 팝업을 띄웁니다.
-            showLoginPopup();
+            // 모든 초기화가 끝난 후, 즉시 구글 로그인 절차를 시작합니다.
+            handleAuthClick(); 
         });
     });
 }
-
+    
 // [삭제] gapiLoaded 함수는 더 이상 필요 없으므로 삭제합니다.
 // <script src="...api.js" onload="gapiLoaded()"> 부분도 onload를 지우고 src만 남깁니다.
 // 수정 -> <script async defer src="https://apis.google.com/js/api.js"></script>
@@ -898,6 +822,10 @@ async function handleSignoutClick() {
             if(docTitleInput) docTitleInput.value = '';
 
             showCustomAlert('로그아웃 되었습니다.');
+
+            // 로그아웃 후 다시 로그인 창을 띄웁니다.
+            handleAuthClick();
+    
         });
     }
 }
@@ -1593,10 +1521,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 이벤트 위임(Event Delegation)을 사용하여 클릭 이벤트 처리
     document.body.addEventListener('click', function(event) {
-        // [로그인 버튼] 클릭 시
-        if (event.target.closest('#custom-google-signin-button')) {
-            handleAuthClick();
-        }
         
         // [로그아웃 버튼] 클릭 시
         if (event.target.closest('#google-sign-out-button')) {
@@ -1650,19 +1574,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
 </script>
 
-<div id="loginOverlay" class="login-overlay" style="display: none;">
-    <div class="login-popup">
-        <h2 class="login-title">SaeRo AI Editor</h2>
-        <p class="login-description">
-            작업 내용은 Google Drive에 저장됩니다.<br>
-            서비스를 이용하려면 Google 로그인이 필요합니다.
-        </p>
-        <button id="custom-google-signin-button" class="google-signin-button">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-            <span>Sign in with Google</span>
-        </button>
-    </div>
-</div>
-    
 </body>
 </html>
