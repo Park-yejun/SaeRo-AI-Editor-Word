@@ -831,9 +831,18 @@ function performUndo() { if (undoStack.length > 0) { const previous = undoStack.
 // ==================================================================
 
 // [신규] 로그인 팝업 표시/숨김 함수
+
 function showLoginPopup() {
     document.getElementById('loginOverlay').style.display = 'flex';
-}
+    // 팝업이 표시되는 이 시점에, 버튼을 다시 찾아 클릭 이벤트를 확실하게 연결해줍니다.
+    const loginButton = document.getElementById('custom-google-signin-button');
+    if (loginButton) {
+        // 기존에 연결된 이벤트가 있다면 제거하고 새로 연결하여 중복을 방지합니다.
+        loginButton.removeEventListener('click', handleAuthClick); 
+        loginButton.addEventListener('click', handleAuthClick);
+    }
+}    
+    
 function hideLoginPopup() {
     document.getElementById('loginOverlay').style.display = 'none';
 }
@@ -1588,8 +1597,6 @@ function initPrompterFeature() {
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // 팝업 안의 로그인 버튼에 이벤트 연결
-    document.getElementById('custom-google-signin-button').addEventListener('click', handleAuthClick);
     
     // 헤더의 로그아웃 버튼 이벤트 연결
     document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);
