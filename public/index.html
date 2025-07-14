@@ -776,19 +776,26 @@ function gapiLoaded() {
 }
 
 function gisLoaded() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: async (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                googleUser = { isSignedIn: () => true };
-                updateLoginUI(true);
-                await loadAndApplySessionData(true); // 로그인 성공 시 Drive에서 데이터 로드
-            }
-        },
-    });
-    gisInited = true;
-    maybeEnableButtons();
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        // 사용자가 로그인을 성공하면 이 callback이 실행됩니다.
+        callback: async (tokenResponse) => {
+            // 토큰이 유효한지 확인합니다.
+            if (tokenResponse && tokenResponse.access_token) {
+                // 1. 로그인 상태를 '로그인 됨'으로 변경
+                googleUser = { isSignedIn: () => true };
+                
+                // 2. UI를 '로그아웃' 버튼으로 업데이트
+                updateLoginUI(true);
+                
+                // 3. 로그인 성공 직후, Google Drive에서 데이터 로드를 시작합니다.
+                await loadAndApplySessionData(); 
+            }
+        },
+    });
+    gisInited = true;
+    maybeEnableButtons();
 }
 
 function maybeEnableButtons() {
@@ -805,16 +812,26 @@ function handleAuthClick() {
 }
 
 async function handleSignoutClick() {
-    await updateAndSaveSession(); // 로그아웃 전 마지막 상태 저장
-    const token = gapi.client.getToken();
-    if (token !== null) {
-        google.accounts.oauth2.revoke(token.access_token, () => {
-            gapi.client.setToken('');
-            googleUser = { isSignedIn: () => false };
-            updateLoginUI(false);
-            showCustomAlert('로그아웃 되었습니다.');
-        });
-    }
+    // 로그아웃 전 마지막 상태를 Drive에 저장합니다.
+    await updateAndSaveSession(); 
+    
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token, () => {
+            gapi.client.setToken('');
+            // 로그아웃 상태로 변경
+            googleUser = { isSignedIn: () => false };
+            updateLoginUI(false);
+            
+            // 전역 세션 데이터와 에디터 내용을 초기화합니다.
+            currentSessionData = {};
+            if(mainTextArea) mainTextArea.value = '';
+            if(memoTextArea) memoTextArea.value = '';
+            if(docTitleInput) docTitleInput.value = '';
+
+            showCustomAlert('로그아웃 되었습니다.');
+        });
+    }
 }
 
 function updateLoginUI(isSignedIn) {
@@ -850,15 +867,20 @@ function captureCurrentState() {
 }
 
 async function updateAndSaveSession() {
-    captureCurrentState();
-    if (googleUser.isSignedIn()) {
-        try {
-            await saveSessionDataToDrive(currentSessionData);
-            console.log("Google Drive에 세션 자동 저장 완료.");
-        } catch (e) {
-            console.error('Google Drive 저장 실패:', e);
-        }
-    }
+    // 1. 로그인 상태인지 먼저 확인합니다.
+    if (!googleUser.isSignedIn()) {
+        return; // 로그아웃 상태이면 아무것도 하지 않고 함수를 종료합니다.
+    }
+    
+    // 2. 현재 페이지의 상태를 캡처합니다.
+    captureCurrentState();
+
+    // 3. Google Drive에 저장합니다.
+    try {
+        await saveSessionDataToDrive(currentSessionData);
+    } catch (e) {
+        console.error('Google Drive 자동 저장 실패:', e);
+    }
 }
 
 /**
