@@ -609,6 +609,24 @@ let loadingStartTime = 0;
 
 let isDomReady = false;
 let isGapiReady = false;
+
+function initializeApp() {
+    // DOM과 GAPI가 모두 준비되었을 때만 실행
+    if (isDomReady && isGapiReady) {
+        // 1. UI 구조 생성
+        initPrompterFeature();
+        initAiChatFeature();
+        initEditorFeature();
+        loadingPopup = document.getElementById('loadingPopup');
+        
+        // 2. 사용자 정보 표시
+        document.getElementById('user-name').textContent = userName;
+        document.getElementById('user-phone').textContent = userPhone;
+
+        // 3. 로그인 절차 시작
+        handleAuthClick();
+    }
+}
     
 // ==================================================================
 // SECTION 1: HTML 콘텐츠 생성 함수
@@ -1514,20 +1532,6 @@ function initPrompterFeature() {
     createTabComponent('.Section2-1', '■ Prompter Selector', getPrompterListHtml(), null);
 }
 
-function initializeApp() {
-    // DOM과 GAPI가 모두 준비되었을 때만 실행
-    if (isDomReady && isGapiReady) {
-        // 1. UI 구조 생성
-        initPrompterFeature();
-        initAiChatFeature();
-        initEditorFeature();
-        loadingPopup = document.getElementById('loadingPopup');
-
-        // 2. 로그인 절차 시작
-        handleAuthClick();
-    }
-}    
-    
 // ==================================================================
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
