@@ -834,14 +834,7 @@ function performUndo() { if (undoStack.length > 0) { const previous = undoStack.
 
 function showLoginPopup() {
     document.getElementById('loginOverlay').style.display = 'flex';
-    // 팝업이 표시되는 이 시점에, 버튼을 다시 찾아 클릭 이벤트를 확실하게 연결해줍니다.
-    const loginButton = document.getElementById('custom-google-signin-button');
-    if (loginButton) {
-        // 기존에 연결된 이벤트가 있다면 제거하고 새로 연결하여 중복을 방지합니다.
-        loginButton.removeEventListener('click', handleAuthClick); 
-        loginButton.addEventListener('click', handleAuthClick);
-    }
-}    
+}
     
 function hideLoginPopup() {
     document.getElementById('loginOverlay').style.display = 'none';
@@ -1598,9 +1591,29 @@ function initPrompterFeature() {
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 헤더의 로그아웃 버튼 이벤트 연결
-    document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);
-    
+    // 이벤트 위임(Event Delegation)을 사용하여 클릭 이벤트 처리
+    document.body.addEventListener('click', function(event) {
+        // [로그인 버튼] 클릭 시
+        if (event.target.closest('#custom-google-signin-button')) {
+            handleAuthClick();
+        }
+        
+        // [로그아웃 버튼] 클릭 시
+        if (event.target.closest('#google-sign-out-button')) {
+            handleSignoutClick();
+        }
+        
+        // [전체삭제 버튼] 클릭 시
+        if (event.target.closest('.delete-all')) {
+            clearTextArea();
+        }
+        
+        // [문서작성 버튼] 클릭 시
+        if (event.target.closest('.create-doc')) {
+            createWordClientSide();
+        }
+    });
+
     // 기존 등록 사용자 정보 표시
     document.getElementById('user-name').textContent = userName;
     document.getElementById('user-phone').textContent = userPhone;
@@ -1611,14 +1624,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initEditorFeature();
 
     loadingPopup = document.getElementById('loadingPopup');
-
-    // 단축키 이벤트 리스너
-    document.addEventListener('keydown', function(event) {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { 
-            event.preventDefault(); 
-            updateAndSaveSession();
-            showCustomAlert('현재 내용이 수동으로 저장되었습니다.');
-        }
     
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
