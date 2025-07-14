@@ -545,16 +545,14 @@
     <div class="main-container">
         <div class="Section1">
             <span class="brand-logo">SaeRo <span class="brand-highlight">AI Editor</span></span>
-            <span class="user-info">[<span id="user-name"></span>, <span id="user-phone"></span>]</span>
-        
-        <span class="user-info" style="display: flex; align-items: center; gap: 15px;">
-            <span>[<span id="user-name"></span>, <span id="user-phone"></span>]</span>
-            <span id="google-auth-container">
-                <button id="google-sign-in-button" disabled style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; font-size: 12px;">Google 로그인</button>
-                <button id="google-sign-out-button" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #dc3545; background-color: #fbebee; color: #dc3545; cursor: pointer; font-size: 12px;">로그아웃</button>
-        </span>
-    </span>
-        
+            
+            <div style="display: flex; align-items: center; gap: 20px; font-size: 0.9em; color: var(--text-secondary-color);">
+                <span>[<span id="user-name"></span>, <span id="user-phone"></span>]</span>
+                <span id="google-auth-container">
+                    <button id="google-sign-in-button" disabled style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; font-size: 12px;">Google 로그인</button>
+                    <button id="google-sign-out-button" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #dc3545; background-color: #fbebee; color: #dc3545; cursor: pointer; font-size: 12px;">로그아웃</button>
+                </span>
+            </div>
         </div>
 
         <div class="content-container">
@@ -604,7 +602,8 @@ let autoSaveTimerIntervalId = null;
 const userName = "박예준2";
 const userPhone = "010-9876-5432";
 let mainTextArea, memoTextArea, docTitleInput, fontFamilySelect, fontSizeInput, lineSpacingInput, paraSpacingAfterInput, loadingPopup, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput;
-let undoStack = [];
+
+let undoStack = {}; // 💡 배열([])이 아닌 객체({})로 변경해야 합니다.
 let loadingTimerIntervalId = null;
 let loadingStartTime = 0;
 
