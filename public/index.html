@@ -8,6 +8,9 @@
     <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+    
 <style>
     /* ================================================================== */
     /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v3.2 Final) == */
@@ -543,6 +546,15 @@
         <div class="Section1">
             <span class="brand-logo">SaeRo <span class="brand-highlight">AI Editor</span></span>
             <span class="user-info">[<span id="user-name"></span>, <span id="user-phone"></span>]</span>
+        
+        <span class="user-info" style="display: flex; align-items: center; gap: 15px;">
+            <span>[<span id="user-name"></span>, <span id="user-phone"></span>]</span>
+            <span id="google-auth-container">
+                <button id="google-sign-in-button" disabled style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; font-size: 12px;">Google 로그인</button>
+                <button id="google-sign-out-button" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #dc3545; background-color: #fbebee; color: #dc3545; cursor: pointer; font-size: 12px;">로그아웃</button>
+        </span>
+    </span>
+        
         </div>
 
         <div class="content-container">
@@ -574,6 +586,21 @@
 // ==================================================================
 
 // --- 전역 변수 선언 ---
+
+// --- Google API 및 상태 관리 변수 ---
+const CLIENT_ID = '983424591109-l4r2v7jnvmnrr8h1mm1j688k0h87spv4.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile';
+const SESSION_DATA_FILE_NAME = 'saero_ai_editor_session_v1.json';
+
+let gapiInited = false;
+let gisInited = false;
+let tokenClient;
+let googleUser = { isSignedIn: () => false };
+
+let currentSessionData = {}; // 앱의 상태를 저장하는 중앙 객체
+const AUTO_SAVE_INTERVAL = 15 * 1000; // 15초
+let autoSaveTimerIntervalId = null;
+    
 const userName = "박예준2";
 const userPhone = "010-9876-5432";
 let mainTextArea, memoTextArea, docTitleInput, fontFamilySelect, fontSizeInput, lineSpacingInput, paraSpacingAfterInput, loadingPopup, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput;
@@ -733,6 +760,196 @@ async function previewSelectionBeforeReplaceAll() { if (!mainTextArea) return; c
 function resetFindReplace() { if (!mainTextArea) return; document.getElementById('simpleFindText').value = ''; document.getElementById('simpleReplaceText').value = ''; mainTextArea.focus(); }
 function performUndo() { if (undoStack.length > 0) { const previous = undoStack.pop(); mainTextArea.value = previous.value; mainTextArea.setSelectionRange(previous.selectionStart, previous.selectionEnd); mainTextArea.focus(); } }
 
+// ==================================================================
+// SECTION 2.5: Google 인증 및 데이터 관리 (신규 추가)
+// ==================================================================
+
+// --- Google API 초기화 콜백 ---
+function gapiLoaded() {
+    gapi.load('client', () => {
+        gapi.client.init({
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        }).then(() => {
+            gapiInited = true;
+            maybeEnableButtons();
+        });
+    });
+}
+
+function gisLoaded() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                googleUser = { isSignedIn: () => true };
+                updateLoginUI(true);
+                await loadAndApplySessionData(true); // 로그인 성공 시 Drive에서 데이터 로드
+            }
+        },
+    });
+    gisInited = true;
+    maybeEnableButtons();
+}
+
+function maybeEnableButtons() {
+    if (gapiInited && gisInited) {
+        document.getElementById('google-sign-in-button').disabled = false;
+    }
+}
+
+// --- 로그인/로그아웃 버튼 핸들러 ---
+function handleAuthClick() {
+    if (gapi.client.getToken() === null) {
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+}
+
+async function handleSignoutClick() {
+    await updateAndSaveSession(); // 로그아웃 전 마지막 상태 저장
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token, () => {
+            gapi.client.setToken('');
+            googleUser = { isSignedIn: () => false };
+            updateLoginUI(false);
+            showCustomAlert('로그아웃 되었습니다.');
+        });
+    }
+}
+
+function updateLoginUI(isSignedIn) {
+    document.getElementById('google-sign-in-button').style.display = isSignedIn ? 'none' : 'inline-block';
+    document.getElementById('google-sign-out-button').style.display = isSignedIn ? 'inline-block' : 'none';
+}
+
+// --- 데이터 캡처, 저장, 로드 ---
+function captureCurrentState() {
+    // 현재는 각 컴포넌트의 첫 번째 탭 내용만 저장
+    const editorPane = document.querySelector('.Section2-3 .tab-content-pane');
+    const chatPane = document.querySelector('.Section2-2 .tab-content-pane');
+
+    const messages = [];
+    if(chatPane) {
+        chatPane.querySelectorAll('.chat-messages .message').forEach(msgEl => {
+            const sender = msgEl.classList.contains('message-user') ? 'user' : 'assistant';
+            const text = msgEl.querySelector('.message-content')?.innerText;
+            if (text) messages.push({ sender, text });
+        });
+    }
+
+    currentSessionData = {
+        editor: {
+            docTitle: editorPane?.querySelector('#docTitle')?.value,
+            content: editorPane?.querySelector('#mainTextArea')?.value,
+            memoContent: editorPane?.querySelector('#memoTextArea')?.value,
+        },
+        chat: {
+            messages: messages
+        }
+    };
+}
+
+async function updateAndSaveSession() {
+    captureCurrentState();
+    localStorage.setItem(SESSION_DATA_FILE_NAME, JSON.stringify(currentSessionData));
+    if (googleUser.isSignedIn()) {
+        try {
+            await saveSessionDataToDrive(currentSessionData);
+            console.log("Google Drive에 세션 자동 저장 완료.");
+        } catch (e) {
+            console.error('Google Drive 저장 실패:', e);
+        }
+    }
+}
+
+async function saveSessionDataToDrive(data) {
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const searchResponse = await gapi.client.drive.files.list({
+        q: `name='${SESSION_DATA_FILE_NAME}'`,
+        spaces: 'appDataFolder',
+        fields: 'files(id)'
+    });
+    
+    const fileId = searchResponse.result.files?.[0]?.id;
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify({})], { type: 'application/json' }));
+    form.append('file', blob);
+
+    const path = fileId 
+        ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
+        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    
+    if (!fileId) {
+        const fileMetadata = { name: SESSION_DATA_FILE_NAME, parents: ['appDataFolder'] };
+        form.set('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
+    }
+
+    await gapi.client.request({
+        path: path,
+        method: fileId ? 'PATCH' : 'POST',
+        body: form,
+    });
+}
+
+async function loadAndApplySessionData(fromDrive = false) {
+    let loadedData = null;
+    let source = "localStorage";
+
+    if (fromDrive && googleUser.isSignedIn()) {
+        try {
+            const searchResponse = await gapi.client.drive.files.list({ q: `name='${SESSION_DATA_FILE_NAME}'`, spaces: 'appDataFolder', fields: 'files(id)' });
+            const fileId = searchResponse.result.files?.[0]?.id;
+            if (fileId) {
+                const contentResponse = await gapi.client.drive.files.get({ fileId, alt: 'media' });
+                loadedData = contentResponse.result;
+                source = "Google Drive";
+            }
+        } catch (e) { console.error('Drive 로드 실패:', e); }
+    }
+
+    if (!loadedData) {
+        const localData = localStorage.getItem(SESSION_DATA_FILE_NAME);
+        if (localData) {
+            try { loadedData = JSON.parse(localData); } catch(e) { console.error('JSON 파싱 실패'); }
+        }
+    }
+
+    if (loadedData) {
+        // Editor 내용 복원
+        const editorData = loadedData.editor;
+        if (editorData) {
+            docTitleInput.value = editorData.docTitle || '';
+            mainTextArea.value = editorData.content || '';
+            memoTextArea.value = editorData.memoContent || '';
+        }
+
+        // Chat 내용 복원
+        const chatData = loadedData.chat;
+        const chatMessages = document.querySelector('.Section2-2 .chat-messages');
+        if (chatData && chatMessages) {
+            chatMessages.innerHTML = ''; // 기본 메시지 삭제
+            chatData.messages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `message message-${msg.sender}`;
+                msgDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">${msg.text.replace(/\n/g, '<br>')}</div></div>`;
+                chatMessages.appendChild(msgDiv);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        showCustomAlert(`${source}에서 직전 작업 내용을 불러왔습니다.`);
+    }
+    
+    startAutoSaveTimer();
+}
+
+// --- 자동 저장 타이머 ---
+function startAutoSaveTimer() {
+    if (autoSaveTimerIntervalId) clearInterval(autoSaveTimerIntervalId);
+    autoSaveTimerIntervalId = setInterval(updateAndSaveSession, AUTO_SAVE_INTERVAL);
+}
+    
+    
 // --- 유틸리티 및 보조 함수 ---
 function generateFilename(prefix) { const now = new Date(); const yymmdd = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0'); const hhmmss = now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0') + now.getSeconds().toString().padStart(2, '0'); return `${prefix}제목없음_${yymmdd}_T${hhmmss}`; }
 function insertSyntax(syntax) { if (!mainTextArea) return; const { scrollTop, selectionStart, selectionEnd, value } = mainTextArea; mainTextArea.value = value.substring(0, selectionStart) + syntax + value.substring(selectionEnd); mainTextArea.focus(); mainTextArea.selectionStart = mainTextArea.selectionEnd = selectionStart + syntax.length; mainTextArea.scrollTop = scrollTop; }
@@ -1220,6 +1437,10 @@ function initPrompterFeature() {
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('google-sign-in-button').addEventListener('click', handleAuthClick);
+    document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);    
+    
     document.getElementById('user-name').textContent = userName;
     document.getElementById('user-phone').textContent = userPhone;
     
@@ -1229,6 +1450,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadingPopup = document.getElementById('loadingPopup');
 
+    loadAndApplySessionData(false); // 페이지 로드 시 로컬 스토리지에서 우선 복원
+    
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
             event.preventDefault();
