@@ -378,7 +378,7 @@ def create_word_document(text_content, settings):
 def log_to_google_sheet(request_text, response_text, token_count):
     try:
         # 💡 중요: 이전에 준비한 실제 스프레드시트 ID로 교체하세요.
-        SPREADSHEET_ID = '여기에_준비해둔_스프레드시트_ID를_붙여넣으세요'
+        SPREADSHEET_ID = '13y3xCf1bS270gh8FE_P2HgoJyEg_cYm-Wd7c7ZP_Tuw'
         
         # Cloud Run에 마운트된 서비스 계정 키 파일 경로
         SERVICE_ACCOUNT_FILE = '/secrets/google-sheets-key.json' 
