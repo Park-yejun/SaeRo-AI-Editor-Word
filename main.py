@@ -2,21 +2,21 @@
 # 1. 라이브러리 임포트
 # ==============================================================================
 import io
-import os  # [추가] API 키를 안전하게 관리하기 위해 os 라이브러리를 임포트합니다.
+import os
 import re
 import requests
 import docx
-import google.generativeai as genai  # [추가] Gemini API 사용을 위한 라이브러리입니다.
+import json # 💡 [추가]
+import google.generativeai as genai
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta # 💡 [기존]
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
-from docx.enum.section import WD_ORIENTATION
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
+# ... (기존 docx 임포트) ...
 from PIL import Image
+# 💡 [추가] Google Sheets API 관련 라이브러리
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 # ==============================================================================
 # 2. Flask 앱 초기화
@@ -373,6 +373,45 @@ def create_word_document(text_content, settings):
     return file_stream
 
 # ==============================================================================
+# 3.5: 💡 [신규] Google Sheet 로깅 헬퍼 함수
+# ==============================================================================
+def log_to_google_sheet(request_text, response_text, token_count):
+    try:
+        # 💡 중요: 이전에 준비한 실제 스프레드시트 ID로 교체하세요.
+        SPREADSHEET_ID = '여기에_준비해둔_스프레드시트_ID를_붙여넣으세요'
+        
+        # Cloud Run에 마운트된 서비스 계정 키 파일 경로
+        SERVICE_ACCOUNT_FILE = '/secrets/google-sheets-key.json' 
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
+        creds = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        
+        service = build('sheets', 'v4', credentials=creds)
+
+        # KST (한국 표준시) 타임스탬프 생성
+        kst = timezone(timedelta(hours=9))
+        timestamp = datetime.now(kst).strftime('%Y-%m-%d %H:%M:%S')
+        
+        # 시트에 추가할 데이터 행
+        row_data = [timestamp, request_text, response_text, token_count]
+        
+        sheet = service.spreadsheets()
+        request_body = {'values': [row_data]}
+        request = sheet.values().append(
+            spreadsheetId=SPREADSHEET_ID,
+            range='Sheet1!A1',
+            valueInputOption='USER_ENTERED',
+            insertDataOption='INSERT_ROWS',
+            body=request_body
+        ).execute()
+        print(f"Google Sheet에 로그 기록 완료: {request}")
+
+    except Exception as e:
+        # 로깅 실패가 전체 API 응답에 영향을 주지 않도록 예외 처리
+        print(f"!!! Google Sheet 로깅 실패: {e}")
+
+# ==============================================================================
 # 4. Flask API 엔드포인트
 # ==============================================================================
 
@@ -405,36 +444,41 @@ def handle_create_docx():
 
 @app.route('/chat-gemini', methods=['POST'])
 def handle_chat():
-    """프론트엔드로부터 채팅 메시지를 받아 Gemini API로 전달하고 응답을 반환합니다."""
-    # 1. Gemini 모델이 성공적으로 초기화되었는지 확인합니다.
+    """프론트엔드로부터 채팅 메시지와 기록(history)을 받아 Gemini API로 전달하고 응답을 반환합니다."""
     if model is None:
         return jsonify({"error": "Gemini API 모델이 초기화되지 않았습니다. 서버 로그를 확인해주세요."}), 503
 
-    # 2. 프론트엔드에서 보낸 요청이 유효한지 확인합니다.
     try:
         if not request.is_json:
             return jsonify({"error": "요청 형식이 올바르지 않습니다. (JSON 필요)"}), 400
         
         data = request.get_json()
         user_message = data.get('message')
+        
+        # 💡 추가: 프론트엔드에서 보낸 채팅 기록(history)을 받습니다.
+        chat_history = data.get('history', []) 
 
         if not user_message:
             return jsonify({"error": "'message' 필드가 요청에 포함되지 않았습니다."}), 400
+            
     except Exception as e:
         print(f"요청 데이터 처리 중 오류 발생: {e}")
         return jsonify({"error": "요청 데이터를 파싱하는 중 오류가 발생했습니다."}), 400
 
-    # 3. Gemini API를 호출하여 답변을 생성합니다.
     try:
-        # 간단한 단일 응답을 위해 빈 대화 기록으로 채팅 세션을 시작합니다.
-        chat_session = model.start_chat(history=[])
+        chat_session = model.start_chat(history=chat_history)
         response = chat_session.send_message(user_message)
         
-        # API 응답 텍스트를 JSON 형태로 프론트엔드에 반환합니다.
+        # 💡 [수정] 토큰 사용량 추출 및 로깅 함수 호출
+        total_tokens = response.usage_metadata.total_token_count
+        log_to_google_sheet(user_message, response.text, total_tokens)
+        
         return jsonify({"reply": response.text})
 
     except Exception as e:
-        # API 호출 중 예외가 발생하면 서버 로그에 기록하고, 사용자에게 에러 메시지를 전달합니다.
+        error_message = f"AI 통신 오류: {str(e)}"
+        # 💡 [수정] API 오류 발생 시에도 로깅
+        log_to_google_sheet(user_message, error_message, 0)
+        
         print(f"!!! Gemini API 호출 오류: {e}")
-        return jsonify({"error": f"AI와 통신하는 중 오류가 발생했습니다: {str(e)}"}), 500
-
+        return jsonify({"error": error_message}), 500
