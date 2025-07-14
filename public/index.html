@@ -8,8 +8,8 @@
     <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
-    <script async defer src="https://apis.google.com/js/api.js"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+    <script defer src="https://apis.google.com/js/api.js"></script>
+    <script defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
     
 <style>
     /* ================================================================== */
@@ -575,41 +575,35 @@
     <div class="custom-alert-content"> <p id="customAlertMessage"></p> <button id="customAlertOkButton">확인</button></div>
   </div>
 
-    
-
 <script>
-
 // ==================================================================
 // 최종 수정된 전체 스크립트 코드
 // ==================================================================
 
 // --- 전역 변수 선언 ---
-
-// --- Google API 및 상태 관리 변수 ---
 const CLIENT_ID = '983424591109-l4r2v7jnvmnrr8h1mm1j688k0h87spv4.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
 const SESSION_DATA_FILE_NAME = 'storage.json';
 
-let gapiInited = false;
-let gisInited = false;
 let tokenClient;
 let googleUser = { isSignedIn: () => false };
-
-let currentSessionData = {}; // 앱의 상태를 저장하는 중앙 객체
-const AUTO_SAVE_INTERVAL = 20 * 1000; // 20초
+let currentSessionData = {};
+const AUTO_SAVE_INTERVAL = 20 * 1000;
 let autoSaveTimerIntervalId = null;
-    
+
 const userName = "박예준2";
 const userPhone = "010-9876-5432";
 let mainTextArea, memoTextArea, docTitleInput, fontFamilySelect, fontSizeInput, lineSpacingInput, paraSpacingAfterInput, loadingPopup, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput;
-
-let undoStack = {}; // 💡 배열([])이 아닌 객체({})로 변경해야 합니다.
+let undoStack = {};
 let loadingTimerIntervalId = null;
 let loadingStartTime = 0;
 
 let isDomReady = false;
 let isGapiReady = false;
 
+// ==================================================================
+// SECTION 0: 앱 초기화 관제탑 함수
+// ==================================================================
 function initializeApp() {
     // DOM과 GAPI가 모두 준비되었을 때만 실행
     if (isDomReady && isGapiReady) {
@@ -627,11 +621,10 @@ function initializeApp() {
         handleAuthClick();
     }
 }
-    
+
 // ==================================================================
 // SECTION 1: HTML 콘텐츠 생성 함수
 // ==================================================================
-
 function getPrompterListHtml() {
     return `<ul><li>프롬프터 항목 1</li><li>프롬프터 항목 2</li><li>프롬프터 항목 3</li></ul>`;
 }
@@ -734,11 +727,11 @@ function getAiChatHtml() {
       <div class="chat-container">
         <div class="chat-messages">
           <div class="message message-assistant">
-             <div class="message-content">안녕하세요! 무엇을 도와드릴까요? 파일을 업로드하거나, 아래 입력창에 질문을 입력해주세요.</div>
+              <div class="message-content">안녕하세요! 무엇을 도와드릴까요? 파일을 업로드하거나, 아래 입력창에 질문을 입력해주세요.</div>
           </div>
         </div>
         <div class="chat-input-section">
-          
+         
           <div class="file-preview-container-wrapper">
             <div class="file-preview-container"></div>
           </div>
@@ -746,7 +739,7 @@ function getAiChatHtml() {
           <div class="chat-input-wrapper">
             <textarea class="message-input" placeholder="여기에 메시지 입력... (Shift+Enter로 줄바꿈)" rows="1"></textarea>
             <input type="file" class="file-input" multiple hidden accept="*/*">
-            
+           
             <div class="chat-button-group">
                 <button class="chat-tool-btn upload-btn" title="파일 업로드">File</button>
                 <button class="chat-tool-btn send-btn" title="보내기">➤</button>
@@ -781,9 +774,8 @@ function resetFindReplace() { if (!mainTextArea) return; document.getElementById
 function performUndo() { if (undoStack.length > 0) { const previous = undoStack.pop(); mainTextArea.value = previous.value; mainTextArea.setSelectionRange(previous.selectionStart, previous.selectionEnd); mainTextArea.focus(); } }
 
 // ==================================================================
-// SECTION 2.5: Google 인증 및 데이터 관리 (신규 추가)
+// SECTION 2.5: Google 인증 및 데이터 관리
 // ==================================================================
-
 function gisLoaded() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
@@ -795,7 +787,6 @@ function gisLoaded() {
                 await loadAndApplySessionData();
             } else {
                 console.log("로그인 절차가 완료되지 않았습니다.");
-                // 사용자가 팝업을 닫으면 다시 로그인 시도
                 handleAuthClick(); 
             }
         },
@@ -805,57 +796,42 @@ function gisLoaded() {
         gapi.client.init({
             discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
         }).then(() => {
-            isGapiReady = true; // 구글 API 준비 완료 상태로 변경
-            initializeApp();    // 앱 초기화 시도
+            isGapiReady = true;
+            initializeApp();
         });
     });
-} 
-    
-// [삭제] gapiLoaded 함수는 더 이상 필요 없으므로 삭제합니다.
-// <script src="...api.js" onload="gapiLoaded()"> 부분도 onload를 지우고 src만 남깁니다.
-// 수정 -> <script async defer src="https://apis.google.com/js/api.js"></script>
-// (단, 이 부분 수정이 어려우면 그냥 두셔도 큰 문제는 없습니다.)
+}   
 
-// [교체] 로그인 버튼 클릭 핸들러
 function handleAuthClick() {
     tokenClient.requestAccessToken({ prompt: 'consent' });
-}    
+}   
 
 async function handleSignoutClick() {
-    // 로그아웃 전 마지막 상태를 Drive에 저장합니다.
-    await updateAndSaveSession(); 
-    
-    const token = gapi.client.getToken();
-    if (token !== null) {
-        google.accounts.oauth2.revoke(token.access_token, () => {
-            gapi.client.setToken('');
-            // 로그아웃 상태로 변경
-            googleUser = { isSignedIn: () => false };
-            updateLoginUI(false);
-            
-            // 전역 세션 데이터와 에디터 내용을 초기화합니다.
-            currentSessionData = {};
-            if(mainTextArea) mainTextArea.value = '';
-            if(memoTextArea) memoTextArea.value = '';
-            if(docTitleInput) docTitleInput.value = '';
-
-            showCustomAlert('로그아웃 되었습니다.');
-
-            // 로그아웃 후 다시 로그인 창을 띄웁니다.
-            handleAuthClick();
+    await updateAndSaveSession(); 
     
-        });
-    }
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token, () => {
+            gapi.client.setToken('');
+            googleUser = { isSignedIn: () => false };
+            updateLoginUI(false);
+            
+            currentSessionData = {};
+            document.querySelector('.content-container').innerHTML = '<div class="content-column Section2-1"></div><div class="content-column Section2-2"></div><div class="content-column Section2-3"></div>';
+            showCustomAlert('로그아웃 되었습니다.');
+            handleAuthClick();
+        });
+    }
 }
 
 function updateLoginUI(isSignedIn) {
-    document.getElementById('google-sign-in-button').style.display = isSignedIn ? 'none' : 'inline-block';
     document.getElementById('google-sign-out-button').style.display = isSignedIn ? 'inline-block' : 'none';
+    if(isSignedIn) {
+        document.getElementById('user-name').textContent = userName;
+        document.getElementById('user-phone').textContent = userPhone;
+    }
 }
-    
-// --- 데이터 캡처, 저장, 로드 ---
-
-// [교체] captureCurrentState - 모든 탭의 상태를 저장
+   
 function captureCurrentState() {
     const components = {};
     document.querySelectorAll('.content-column').forEach(column => {
@@ -883,7 +859,6 @@ function captureCurrentState() {
                 });
                 content = { messages };
             }
-            // Section2-1 (Prompter) 등 다른 컴포넌트 데이터도 같은 방식으로 추가 가능
             
             tabsData.push({ id: tabId, name: tabName, content });
         });
@@ -893,23 +868,19 @@ function captureCurrentState() {
 }
     
 async function updateAndSaveSession() {
-    // 1. 로그인 상태인지 먼저 확인합니다.
-    if (!googleUser.isSignedIn()) {
-        return; // 로그아웃 상태이면 아무것도 하지 않고 함수를 종료합니다.
-    }
+    if (!googleUser.isSignedIn()) {
+        return; 
+    }
     
-    // 2. 현재 페이지의 상태를 캡처합니다.
-    captureCurrentState();
+    captureCurrentState();
 
-    // 3. Google Drive에 저장합니다.
-    try {
-        await saveSessionDataToDrive(currentSessionData);
-    } catch (e) {
-        console.error('Google Drive 자동 저장 실패:', e);
-    }
+    try {
+        await saveSessionDataToDrive(currentSessionData);
+    } catch (e) {
+        console.error('Google Drive 자동 저장 실패:', e);
+    }
 }
 
-// [수정] getDriveAssetIds - FOLDER_NAME 전역 변수 사용
 async function getDriveAssetIds() {
     const FOLDER_NAME = 'SRAIEditor';
     let folderId = null;
@@ -936,10 +907,6 @@ async function getDriveAssetIds() {
     return { folderId, fileId };
 }
 
-/**
- * [교체됨] 현재 세션 데이터를 Google Drive의 'SRAIEditor' 폴더에 저장합니다.
- * @param {object} data - 저장할 세션 데이터
- */
 async function saveSessionDataToDrive(data) {
     const { folderId, fileId } = await getDriveAssetIds();
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
@@ -947,7 +914,6 @@ async function saveSessionDataToDrive(data) {
     const form = new FormData();
     const fileMetadata = { name: SESSION_DATA_FILE_NAME };
 
-    // 새 파일인 경우에만 부모 폴더를 지정합니다.
     if (!fileId) {
         fileMetadata.parents = [folderId];
     }
@@ -966,7 +932,6 @@ async function saveSessionDataToDrive(data) {
     });
 }
 
-// [교체] loadAndApplySessionData - 저장된 상태로부터 전체 UI 복원
 async function loadAndApplySessionData() {
     if (!googleUser.isSignedIn()) return;
 
@@ -987,7 +952,6 @@ async function loadAndApplySessionData() {
     }
 
     if (loadedData && loadedData.components) {
-        // 모든 컴포넌트(컬럼)에 대해 루프 실행
         for (const componentId in loadedData.components) {
             const column = document.querySelector(`.${componentId}`);
             if (!column) continue;
@@ -997,29 +961,26 @@ async function loadAndApplySessionData() {
             const tabList = column.querySelector('.tab-list');
             const addButton = column.querySelector('.add-tab-btn');
 
-            // 기존 탭 모두 삭제
             tabContentArea.innerHTML = '';
             tabList.innerHTML = '';
 
-            if (tabData.length === 0) { // 저장된 탭이 없으면 기본 탭 하나 생성
-                 addButton.click();
+            if (tabData.length === 0) {
+                addButton.click();
             } else {
-                 for (const tab of tabData) {
-                    addButton.click(); // 새 탭 추가
+                for (const tab of tabData) {
+                    addButton.click(); 
                     const newPane = column.querySelector('.tab-content-pane:last-child');
                     const newTab = column.querySelector('.tab:last-child');
                     
-                    // 탭 이름 설정
                     newTab.querySelector('span:first-of-type').textContent = tab.name;
 
-                    // 탭 콘텐츠 채우기
-                    if (componentId === 'Section2-3') { // Editor
+                    if (componentId === 'Section2-3') {
                         newPane.querySelector('#docTitle').value = tab.content.docTitle || '';
                         newPane.querySelector('#mainTextArea').value = tab.content.mainContent || '';
                         newPane.querySelector('#memoTextArea').value = tab.content.memoContent || '';
-                    } else if (componentId === 'Section2-2') { // AI Chat
+                    } else if (componentId === 'Section2-2') { 
                         const messagesContainer = newPane.querySelector('.chat-messages');
-                        messagesContainer.innerHTML = ''; // 기본 메시지 삭제
+                        messagesContainer.innerHTML = ''; 
                         tab.content.messages.forEach(msg => {
                             const msgDiv = document.createElement('div');
                             msgDiv.className = `message message-${msg.sender}`;
@@ -1028,9 +989,8 @@ async function loadAndApplySessionData() {
                             messagesContainer.appendChild(msgDiv);
                         });
                     }
-                 }
+                }
             }
-            // 첫 번째 탭을 활성화 상태로 만듦
             const firstTab = column.querySelector('.tab');
             if(firstTab) firstTab.click();
         }
@@ -1039,17 +999,12 @@ async function loadAndApplySessionData() {
 
     startAutoSaveTimer();
 }
-
-
-     
-// --- 자동 저장 타이머 ---
+   
 function startAutoSaveTimer() {
     if (autoSaveTimerIntervalId) clearInterval(autoSaveTimerIntervalId);
     autoSaveTimerIntervalId = setInterval(updateAndSaveSession, AUTO_SAVE_INTERVAL);
 }
     
-    
-// --- 유틸리티 및 보조 함수 ---
 function generateFilename(prefix) { const now = new Date(); const yymmdd = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0'); const hhmmss = now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0') + now.getSeconds().toString().padStart(2, '0'); return `${prefix}제목없음_${yymmdd}_T${hhmmss}`; }
 function insertSyntax(syntax) { if (!mainTextArea) return; const { scrollTop, selectionStart, selectionEnd, value } = mainTextArea; mainTextArea.value = value.substring(0, selectionStart) + syntax + value.substring(selectionEnd); mainTextArea.focus(); mainTextArea.selectionStart = mainTextArea.selectionEnd = selectionStart + syntax.length; mainTextArea.scrollTop = scrollTop; }
 function handleContextScroll(isScrollingDown) { if (!mainTextArea) return; const computedStyle = window.getComputedStyle(mainTextArea); const lineHeight = parseFloat(computedStyle.lineHeight); const scrollAmount = mainTextArea.clientHeight - (3 * lineHeight); let newScrollTop = isScrollingDown ? mainTextArea.scrollTop + scrollAmount : mainTextArea.scrollTop - scrollAmount; mainTextArea.scrollTo({ top: newScrollTop, behavior: 'smooth' }); }
@@ -1104,10 +1059,6 @@ async function createWordClientSide() {
 // ==================================================================
 // SECTION 3: 탭 컴포넌트 관리 함수
 // ==================================================================
-
-/**
- * [업그레이드 버전] 범용 탭 컴포넌트 생성 함수
- */
 function createTabComponent(targetSelector, title, initialContentHtml, onTabActivated) {
     const container = document.querySelector(targetSelector);
     if (!container) {
@@ -1147,8 +1098,6 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
         newPane.className = 'tab-content-pane';
         newPane.dataset.tabId = newTabId;
         
-        // Editor와 Prompter는 서로 다른 내용을 가질 수 있으므로, initialContentHtml을 기반으로 새 탭을 만듭니다.
-        // 여기서는 간단하게 Editor의 HTML을 재사용하는 것으로 가정합니다. 더 복잡한 로직이 필요하면 수정이 필요합니다.
         if (container.classList.contains('Section2-3')) {
             newPane.innerHTML = getEditorHtml();
         } else {
@@ -1236,9 +1185,6 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
     activateTab(container.querySelector('.tab.active'));
 }
 
-/**
- * AI 채팅 컴포넌트의 모든 로직을 관리하는 독립 함수 (최종 완성본)
- */
 function initializeAiChatComponent(targetSelector, title) {
     const container = document.querySelector(targetSelector);
     if (!container) return;
@@ -1250,7 +1196,6 @@ function initializeAiChatComponent(targetSelector, title) {
     const addButton = container.querySelector('.add-tab-btn');
     let tabCounter = 1;
 
-    // 개별 채팅 탭의 모든 기능을 설정하는 함수
     const setupChatPane = (chatPane) => {
         if (chatPane.dataset.chatInitialized) return;
 
@@ -1262,12 +1207,10 @@ function initializeAiChatComponent(targetSelector, title) {
         const filePreviewContainer = chatPane.querySelector('.file-preview-container');
         let uploadedFiles = [];
 
-        // 메시지 전송 로직
-        const sendMessage = async () => { // async 키워드가 추가되었습니다.
+        const sendMessage = async () => { 
             const messageText = messageInput.value.trim();
             if (messageText === '' && uploadedFiles.length === 0) return;
         
-            // --- 사용자 메시지 표시 (이 부분은 기존 코드와 동일) ---
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message message-user';
             let messageHTML = '';
@@ -1286,7 +1229,6 @@ function initializeAiChatComponent(targetSelector, title) {
             });
             messagesContainer.appendChild(userMessageDiv);
         
-            // 입력창 및 파일 초기화
             messageInput.value = '';
             messageInput.style.height = 'auto';
             filePreviewContainer.innerHTML = '';
@@ -1294,9 +1236,6 @@ function initializeAiChatComponent(targetSelector, title) {
             uploadedFiles = [];
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            // --- AI 응답 처리 (setTimeout 부분을 실제 API 호출로 변경) ---
-        
-            // 1. "답변 생성 중..." 임시 메시지를 먼저 표시합니다.
             const loadingMessageDiv = document.createElement('div');
             loadingMessageDiv.className = 'message message-assistant';
             loadingMessageDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">답변 생성 중...</div></div>`;
@@ -1304,20 +1243,18 @@ function initializeAiChatComponent(targetSelector, title) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         
             try {
-                // 2. 백엔드 API를 호출합니다.
                 const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app";
                 
                 const response = await fetch(`${BACKEND_URL}/chat-gemini`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: messageText }), // 사용자 메시지를 JSON으로 전송
+                    body: JSON.stringify({ message: messageText }),
                 });
-        
+            
                 const data = await response.json();
                 
-                // 3. "답변 생성 중..." 메시지를 실제 응답으로 교체합니다.
-                loadingMessageDiv.remove(); // 로딩 메시지 삭제
-        
+                loadingMessageDiv.remove(); 
+            
                 let responseText = response.ok ? data.reply : `오류: ${data.error || '알 수 없는 오류'}`;
                 
                 const assistantMessageDiv = document.createElement('div');
@@ -1331,10 +1268,9 @@ function initializeAiChatComponent(targetSelector, title) {
                     navigator.clipboard.writeText(responseText).catch(err => console.error('복사 실패: ', err));
                 });
                 messagesContainer.appendChild(assistantMessageDiv);
-        
+            
             } catch (error) {
-                // 4. 네트워크 오류 등 fetch 자체가 실패했을 경우의 예외 처리
-                loadingMessageDiv.remove(); // 로딩 메시지 삭제
+                loadingMessageDiv.remove(); 
                 const errorMessage = `네트워크 오류 또는 서버 연결 실패: ${error.message}`;
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message message-assistant';
@@ -1342,12 +1278,10 @@ function initializeAiChatComponent(targetSelector, title) {
                 messagesContainer.appendChild(errorMessageDiv);
                 console.error('Chat API Error:', error);
             } finally {
-                // 5. 작업 완료 후 스크롤을 항상 맨 아래로 이동
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
         };
         
-        // 파일 처리 로직
         const handleFiles = (files) => {
             if (uploadedFiles.length + files.length > 10) {
                 showCustomAlert('파일은 최대 10개까지 업로드할 수 있습니다.');
@@ -1366,7 +1300,6 @@ function initializeAiChatComponent(targetSelector, title) {
             }
         };
 
-        // 이벤트 리스너 연결
         sendButton.onclick = sendMessage;
         uploadButton.onclick = () => fileInput.click();
         fileInput.onchange = () => { handleFiles(fileInput.files); fileInput.value = ''; };
@@ -1382,7 +1315,6 @@ function initializeAiChatComponent(targetSelector, title) {
         chatPane.dataset.chatInitialized = 'true';
     };
 
-    // 탭 활성화 로직
     const activateTab = (tabToActivate) => {
         if (!tabToActivate) return;
         tabList.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1395,7 +1327,6 @@ function initializeAiChatComponent(targetSelector, title) {
         }
     };
     
-    // 새 탭 추가 로직
     addButton.addEventListener('click', () => {
         tabCounter++;
         const newTabId = `tab${tabCounter}`;
@@ -1413,7 +1344,6 @@ function initializeAiChatComponent(targetSelector, title) {
         tabList.scrollLeft = tabList.scrollWidth;
     });
     
-    // 탭 클릭, 닫기, 이름 바꾸기, 스크롤 등 나머지 탭 관리 로직
     tabList.addEventListener('click', (event) => {
         const target = event.target;
         if (target.classList.contains('close-tab')) {
@@ -1488,46 +1418,27 @@ function initializeAiChatComponent(targetSelector, title) {
 // ==================================================================
 // SECTION 4: 페이지 초기화 및 기능별 담당 함수
 // ==================================================================
-
-/**
- * 에디터 기능의 모든 초기화를 담당하는 함수
- */
 function initEditorFeature() {
-    // 에디터 탭이 활성화될 때마다 실행될 동작을 정의합니다.
-    const onEditorTabActivated = (activePane) => {
-        // 전역 변수들이 항상 활성화된 탭의 요소를 가리키도록 업데이트합니다.
-        mainTextArea = activePane.querySelector('#mainTextArea');
-        memoTextArea = activePane.querySelector('#memoTextArea');
-        docTitleInput = activePane.querySelector('#docTitle');
-        fontFamilySelect = activePane.querySelector('#fontFamily');
-        fontSizeInput = activePane.querySelector('#fontSize');
-        lineSpacingInput = activePane.querySelector('#lineSpacing');
-        paraSpacingAfterInput = activePane.querySelector('#paraSpacingAfter');
-        marginTopInput = activePane.querySelector('#marginTop');
-        marginBottomInput = activePane.querySelector('#marginBottom');
-        marginLeftInput = activePane.querySelector('#marginLeft');
-        marginRightInput = activePane.querySelector('#marginRight');
-    };
-
-    // 업그레이드된 createTabComponent를 호출합니다.
-    createTabComponent(
-        '.Section2-3', 
-        '■ Editor', 
-        getEditorHtml(),
-        onEditorTabActivated // 탭 활성화 시 실행할 콜백 함수를 전달합니다.
-    );
+    const onEditorTabActivated = (activePane) => {
+        mainTextArea = activePane.querySelector('#mainTextArea');
+        memoTextArea = activePane.querySelector('#memoTextArea');
+        docTitleInput = activePane.querySelector('#docTitle');
+        fontFamilySelect = activePane.querySelector('#fontFamily');
+        fontSizeInput = activePane.querySelector('#fontSize');
+        lineSpacingInput = activePane.querySelector('#lineSpacing');
+        paraSpacingAfterInput = activePane.querySelector('#paraSpacingAfter');
+        marginTopInput = activePane.querySelector('#marginTop');
+        marginBottomInput = activePane.querySelector('#marginBottom');
+        marginLeftInput = activePane.querySelector('#marginLeft');
+        marginRightInput = activePane.querySelector('#marginRight');
+    };
+    createTabComponent('.Section2-3', '■ Editor', getEditorHtml(), onEditorTabActivated);
 }
 
-/**
- * AI 채팅 기능의 모든 초기화를 담당하는 함수
- */
 function initAiChatFeature() {
     initializeAiChatComponent('.Section2-2', '■ AI Chat');
 }
 
-/**
- * 프롬프터 기능의 초기화를 담당하는 함수
- */
 function initPrompterFeature() {
     createTabComponent('.Section2-1', '■ Prompter Selector', getPrompterListHtml(), null);
 }
@@ -1536,10 +1447,9 @@ function initPrompterFeature() {
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    isDomReady = true; // DOM 준비 완료 상태로 변경
-    initializeApp();   // 앱 초기화 시도
+    isDomReady = true;
+    initializeApp();
 
-    // 이벤트 위임(Event Delegation)으로 클릭 이벤트 처리
     document.body.addEventListener('click', function(event) {
         if (event.target.closest('#google-sign-out-button')) {
             handleSignoutClick();
@@ -1574,8 +1484,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.key === 'PageUp') { event.preventDefault(); if (mainTextArea) handleContextScroll(false); }
     });
 });
-    
 </script>
-
+    
 </body>
+
 </html>
