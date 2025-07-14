@@ -587,7 +587,7 @@
 
 // --- Google API 및 상태 관리 변수 ---
 const CLIENT_ID = '983424591109-l4r2v7jnvmnrr8h1mm1j688k0h87spv4.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
 const SESSION_DATA_FILE_NAME = 'saero_ai_editor_session_v1.json';
 
 let gapiInited = false;
@@ -851,7 +851,6 @@ function captureCurrentState() {
 
 async function updateAndSaveSession() {
     captureCurrentState();
-    localStorage.setItem(SESSION_DATA_FILE_NAME, JSON.stringify(currentSessionData));
     if (googleUser.isSignedIn()) {
         try {
             await saveSessionDataToDrive(currentSessionData);
@@ -862,27 +861,76 @@ async function updateAndSaveSession() {
     }
 }
 
-async function saveSessionDataToDrive(data) {
-    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    const searchResponse = await gapi.client.drive.files.list({
-        q: `name='${SESSION_DATA_FILE_NAME}'`,
-        spaces: 'appDataFolder',
-        fields: 'files(id)'
+/**
+ * Google Drive에서 'SRAIEditor' 폴더와 세션 파일의 ID를 찾거나 생성하는 헬퍼 함수
+ * @returns {Promise<{folderId: string, fileId: string|null}>}
+ */
+async function getDriveAssetIds() {
+    const FOLDER_NAME = 'SRAIEditor';
+    let folderId = null;
+
+    // 1. "SRAIEditor" 폴더 검색
+    let response = await gapi.client.drive.files.list({
+        q: `mimeType='application/vnd.google-apps.folder' and name='${FOLDER_NAME}' and trashed=false`,
+        fields: 'files(id)',
+        spaces: 'drive'
     });
-    
-    const fileId = searchResponse.result.files?.[0]?.id;
+
+    if (response.result.files && response.result.files.length > 0) {
+        folderId = response.result.files[0].id;
+    } else {
+        // 2. 폴더가 없으면 새로 생성
+        const folderMetadata = {
+            name: FOLDER_NAME,
+            mimeType: 'application/vnd.google-apps.folder'
+        };
+        response = await gapi.client.drive.files.create({
+            resource: folderMetadata,
+            fields: 'id'
+        });
+        folderId = response.result.id;
+        console.log(`'${FOLDER_NAME}' 폴더를 생성했습니다. ID: ${folderId}`);
+    }
+
+    if (!folderId) {
+        throw new Error('SRAIEditor 폴더를 찾거나 생성할 수 없습니다.');
+    }
+
+    // 3. 해당 폴더 내에서 세션 파일 검색
+    response = await gapi.client.drive.files.list({
+        q: `name='${SESSION_DATA_FILE_NAME}' and '${folderId}' in parents and trashed=false`,
+        fields: 'files(id)',
+        spaces: 'drive'
+    });
+
+    const fileId = response.result.files?.[0]?.id || null;
+
+    return { folderId, fileId };
+}
+
+
+/**
+ * [교체됨] 현재 세션 데이터를 Google Drive의 'SRAIEditor' 폴더에 저장합니다.
+ * @param {object} data - 저장할 세션 데이터
+ */
+async function saveSessionDataToDrive(data) {
+    const { folderId, fileId } = await getDriveAssetIds();
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+
     const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({})], { type: 'application/json' }));
+    const fileMetadata = { name: SESSION_DATA_FILE_NAME };
+
+    // 새 파일인 경우에만 부모 폴더를 지정합니다.
+    if (!fileId) {
+        fileMetadata.parents = [folderId];
+    }
+
+    form.append('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
     form.append('file', blob);
 
-    const path = fileId 
+    const path = fileId
         ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
         : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-    
-    if (!fileId) {
-        const fileMetadata = { name: SESSION_DATA_FILE_NAME, parents: ['appDataFolder'] };
-        form.set('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
-    }
 
     await gapi.client.request({
         path: path,
@@ -891,33 +939,38 @@ async function saveSessionDataToDrive(data) {
     });
 }
 
-async function loadAndApplySessionData(fromDrive = false) {
-    let loadedData = null;
-    let source = "localStorage";
-
-    if (fromDrive && googleUser.isSignedIn()) {
-        try {
-            const searchResponse = await gapi.client.drive.files.list({ q: `name='${SESSION_DATA_FILE_NAME}'`, spaces: 'appDataFolder', fields: 'files(id)' });
-            const fileId = searchResponse.result.files?.[0]?.id;
-            if (fileId) {
-                const contentResponse = await gapi.client.drive.files.get({ fileId, alt: 'media' });
-                loadedData = contentResponse.result;
-                source = "Google Drive";
-            }
-        } catch (e) { console.error('Drive 로드 실패:', e); }
+/**
+ * [교체됨] 페이지 로딩 또는 로그인 시 Google Drive에서 직전 작업 내용을 불러옵니다.
+ * 로컬 저장소 로직은 완전히 제거되었습니다.
+ */
+async function loadAndApplySessionData() {
+    // 로그인 상태가 아니면 실행하지 않습니다.
+    if (!googleUser.isSignedIn()) {
+        startAutoSaveTimer(); // 로그인 후 저장을 위해 타이머는 시작
+        return;
     }
 
-    if (!loadedData) {
-        const localData = localStorage.getItem(SESSION_DATA_FILE_NAME);
-        if (localData) {
-            try { loadedData = JSON.parse(localData); } catch(e) { console.error('JSON 파싱 실패'); }
+    showLoadingPopup(); // 로딩 시작
+    let loadedData = null;
+
+    try {
+        const { fileId } = await getDriveAssetIds();
+
+        if (fileId) {
+            const contentResponse = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
+            loadedData = contentResponse.result;
         }
+    } catch (e) {
+        console.error('Google Drive에서 데이터를 불러오는 중 오류 발생:', e);
+        showCustomAlert('Google Drive 데이터 로드 중 오류가 발생했습니다.');
+    } finally {
+        hideLoadingPopup(); // 로딩 종료
     }
 
     if (loadedData) {
         // Editor 내용 복원
         const editorData = loadedData.editor;
-        if (editorData) {
+        if (editorData && mainTextArea && memoTextArea && docTitleInput) {
             docTitleInput.value = editorData.docTitle || '';
             mainTextArea.value = editorData.content || '';
             memoTextArea.value = editorData.memoContent || '';
@@ -925,23 +978,38 @@ async function loadAndApplySessionData(fromDrive = false) {
 
         // Chat 내용 복원
         const chatData = loadedData.chat;
-        const chatMessages = document.querySelector('.Section2-2 .chat-messages');
-        if (chatData && chatMessages) {
-            chatMessages.innerHTML = ''; // 기본 메시지 삭제
+        const chatMessagesContainer = document.querySelector('.Section2-2 .chat-messages');
+        if (chatData && chatData.messages && chatMessagesContainer) {
+            chatMessagesContainer.innerHTML = ''; // 기본 메시지 삭제
             chatData.messages.forEach(msg => {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = `message message-${msg.sender}`;
-                msgDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">${msg.text.replace(/\n/g, '<br>')}</div></div>`;
-                chatMessages.appendChild(msgDiv);
-            });
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        showCustomAlert(`${source}에서 직전 작업 내용을 불러왔습니다.`);
-    }
-    
-    startAutoSaveTimer();
-}
+                // 복사 버튼 등을 포함한 HTML 구조를 일관성 있게 생성
+                const contentHTML = `<div class="message-content">${msg.text.replace(/\n/g, '<br>')}</div>`;
+                const copyBtnHTML = `<button class="copy-btn" title="내용 복사">📋</button>`;
+                const wrapperHTML = (msg.sender === 'user')
+                    ? `<div class="message-wrapper">${contentHTML}${copyBtnHTML}</div>`
+                    : `<div class="message-wrapper">${copyBtnHTML}${contentHTML}</div>`;
 
+                msgDiv.innerHTML = wrapperHTML;
+
+                // 복사 버튼 이벤트 리스너 추가
+                msgDiv.querySelector('.copy-btn').addEventListener('click', () => {
+                     navigator.clipboard.writeText(msg.text).catch(err => console.error('복사 실패: ', err));
+                });
+
+                chatMessagesContainer.appendChild(msgDiv);
+            });
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+        showCustomAlert(`Google Drive에서 직전 작업 내용을 불러왔습니다.`);
+    } else {
+         console.log("Google Drive에 저장된 세션 파일이 없습니다.");
+    }
+
+    startAutoSaveTimer(); // 데이터 로드 완료 후 자동 저장 타이머 시작
+}
+    
 // --- 자동 저장 타이머 ---
 function startAutoSaveTimer() {
     if (autoSaveTimerIntervalId) clearInterval(autoSaveTimerIntervalId);
@@ -1449,8 +1517,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadingPopup = document.getElementById('loadingPopup');
 
-    loadAndApplySessionData(false); // 페이지 로드 시 로컬 스토리지에서 우선 복원
-    
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
             event.preventDefault();
