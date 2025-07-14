@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
-    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://apis.google.com/js/api.js"></script>
     <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
     
 <style>
@@ -537,6 +537,73 @@
     from { background-position: 40px 0; }
     to { background-position: 0 0; }
 }
+
+/* [신규 추가] 커스텀 로그인 팝업 스타일 */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000;
+}
+
+.login-popup {
+    background-color: white;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.login-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.google-signin-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 24px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.google-signin-button:hover {
+    border-color: #ccc;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.google-signin-button img {
+    width: 20px;
+    height: 20px;
+}
     
 </style>
     
@@ -588,7 +655,7 @@
 // --- Google API 및 상태 관리 변수 ---
 const CLIENT_ID = '983424591109-l4r2v7jnvmnrr8h1mm1j688k0h87spv4.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
-const SESSION_DATA_FILE_NAME = 'saero_ai_editor_session_v1.json';
+const SESSION_DATA_FILE_NAME = 'storage.json';
 
 let gapiInited = false;
 let gisInited = false;
@@ -596,7 +663,7 @@ let tokenClient;
 let googleUser = { isSignedIn: () => false };
 
 let currentSessionData = {}; // 앱의 상태를 저장하는 중앙 객체
-const AUTO_SAVE_INTERVAL = 15 * 1000; // 15초
+const AUTO_SAVE_INTERVAL = 20 * 1000; // 20초
 let autoSaveTimerIntervalId = null;
     
 const userName = "박예준2";
@@ -764,85 +831,53 @@ function performUndo() { if (undoStack.length > 0) { const previous = undoStack.
 // ==================================================================
 
 // --- Google API 초기화 콜백 ---
-function gapiLoaded() {
-    gapi.load('client', () => {
-        gapi.client.init({
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        }).then(() => {
-            gapiInited = true;
-            maybeEnableButtons();
-        });
-    });
+
+// [신규] 로그인 팝업 표시/숨김 함수
+function showLoginPopup() {
+    document.getElementById('loginOverlay').style.display = 'flex';
+}
+function hideLoginPopup() {
+    document.getElementById('loginOverlay').style.display = 'none';
 }
 
+// [교체] gisLoaded - 페이지 로딩 시 실행
 function gisLoaded() {
-    let isLoginTriggered = false; // 로그인 절차가 시작되었는지 추적하는 플래그
-
-    // --- 자동 로그인을 위한 ID 클라이언트 초기화 ---
-    google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: (response) => {
-            isLoginTriggered = true; // 자동 로그인이 감지됨
-            handleCredentialResponse(response);
-        },
-        auto_select: true
-    });
-
-    // --- 토큰 클라이언트 초기화 ---
+    // 1. 토큰 클라이언트 초기화
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
                 googleUser = { isSignedIn: () => true };
+                hideLoginPopup(); // 로그인 성공 시 팝업 숨김
                 updateLoginUI(true);
                 await loadAndApplySessionData();
+            } else {
+                showCustomAlert("로그인에 실패했습니다. 다시 시도해주세요.");
             }
         },
     });
 
-    gisInited = true;
-    maybeEnableButtons();
-    
-    // --- 페이지 로드 시 자동 로그인 또는 One Tap UI 표시 시도 ---
-    google.accounts.id.prompt((notification) => {
-        // One Tap UI가 표시되지 않는 경우 (예: 사용자가 닫았거나, 팝업이 차단된 경우)
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // 짧은 시간(1.5초) 후에 로그인 절차가 시작되지 않았다면,
-            // 신규 방문자로 간주하고 수동으로 로그인 창을 호출합니다.
-            setTimeout(() => {
-                if (!isLoginTriggered && !googleUser.isSignedIn()) {
-                    console.log("자동 로그인이 감지되지 않아 수동 로그인 팝업을 호출합니다.");
-                    // 로그인 버튼을 클릭했을 때와 동일한 함수를 호출하여 팝업을 띄웁니다.
-                    handleAuthClick(); 
-                }
-            }, 1500); 
-        }
+    // 2. Google API 클라이언트 초기화
+    gapi.load('client', () => {
+        gapi.client.init({
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        }).then(() => {
+            // 모든 초기화가 끝난 후, 로그인 팝업을 띄웁니다.
+            showLoginPopup();
+        });
     });
 }
-    
-// --- 💡 [추가] 자동 로그인 성공 시 실행될 콜백 함수 ---
-// google.accounts.id.initialize의 callback으로 지정된 함수입니다.
-function handleCredentialResponse(response) {
-    // 자동 로그인 또는 One Tap 로그인이 성공했다는 신호를 받으면,
-    // Drive API 접근에 필요한 access token을 '조용히' 요청합니다.
-    // prompt: 'none' 옵션은 사용자에게 추가적인 팝업을 띄우지 않습니다.
-    console.log("자동 로그인 성공. Access Token 요청 시작...");
-    tokenClient.requestAccessToken({ prompt: 'none' });
-}
-    
-function maybeEnableButtons() {
-    if (gapiInited && gisInited) {
-        document.getElementById('google-sign-in-button').disabled = false;
-    }
-}
 
-// --- 로그인/로그아웃 버튼 핸들러 ---
+// [삭제] gapiLoaded 함수는 더 이상 필요 없으므로 삭제합니다.
+// <script src="...api.js" onload="gapiLoaded()"> 부분도 onload를 지우고 src만 남깁니다.
+// 수정 -> <script async defer src="https://apis.google.com/js/api.js"></script>
+// (단, 이 부분 수정이 어려우면 그냥 두셔도 큰 문제는 없습니다.)
+
+// [교체] 로그인 버튼 클릭 핸들러
 function handleAuthClick() {
-    if (gapi.client.getToken() === null) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-    }
-}
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+}    
 
 async function handleSignoutClick() {
     // 로그아웃 전 마지막 상태를 Drive에 저장합니다.
@@ -873,32 +908,44 @@ function updateLoginUI(isSignedIn) {
 }
 
 // --- 데이터 캡처, 저장, 로드 ---
+
+// [교체] captureCurrentState - 모든 탭의 상태를 저장
 function captureCurrentState() {
-    // 현재는 각 컴포넌트의 첫 번째 탭 내용만 저장
-    const editorPane = document.querySelector('.Section2-3 .tab-content-pane');
-    const chatPane = document.querySelector('.Section2-2 .tab-content-pane');
-
-    const messages = [];
-    if(chatPane) {
-        chatPane.querySelectorAll('.chat-messages .message').forEach(msgEl => {
-            const sender = msgEl.classList.contains('message-user') ? 'user' : 'assistant';
-            const text = msgEl.querySelector('.message-content')?.innerText;
-            if (text) messages.push({ sender, text });
+    const components = {};
+    document.querySelectorAll('.content-column').forEach(column => {
+        const componentId = column.classList[1]; // e.g., 'Section2-1'
+        const tabsData = [];
+        
+        column.querySelectorAll('.tab-content-pane').forEach(pane => {
+            const tabId = pane.dataset.tabId;
+            const tabElement = column.querySelector(`.tab[data-tab-id="${tabId}"] span:first-of-type`);
+            const tabName = tabElement ? tabElement.textContent : 'tab';
+            
+            let content = {};
+            if (componentId === 'Section2-3') { // Editor
+                content = {
+                    docTitle: pane.querySelector('#docTitle')?.value,
+                    mainContent: pane.querySelector('#mainTextArea')?.value,
+                    memoContent: pane.querySelector('#memoTextArea')?.value,
+                };
+            } else if (componentId === 'Section2-2') { // AI Chat
+                const messages = [];
+                pane.querySelectorAll('.chat-messages .message').forEach(msgEl => {
+                    const sender = msgEl.classList.contains('message-user') ? 'user' : 'assistant';
+                    const text = msgEl.querySelector('.message-content')?.innerText;
+                    if(text) messages.push({ sender, text });
+                });
+                content = { messages };
+            }
+            // Section2-1 (Prompter) 등 다른 컴포넌트 데이터도 같은 방식으로 추가 가능
+            
+            tabsData.push({ id: tabId, name: tabName, content });
         });
-    }
-
-    currentSessionData = {
-        editor: {
-            docTitle: editorPane?.querySelector('#docTitle')?.value,
-            content: editorPane?.querySelector('#mainTextArea')?.value,
-            memoContent: editorPane?.querySelector('#memoTextArea')?.value,
-        },
-        chat: {
-            messages: messages
-        }
-    };
+        components[componentId] = { tabs: tabsData };
+    });
+    currentSessionData = { components };
 }
-
+    
 async function updateAndSaveSession() {
     // 1. 로그인 상태인지 먼저 확인합니다.
     if (!googleUser.isSignedIn()) {
@@ -916,53 +963,32 @@ async function updateAndSaveSession() {
     }
 }
 
-/**
- * Google Drive에서 'SRAIEditor' 폴더와 세션 파일의 ID를 찾거나 생성하는 헬퍼 함수
- * @returns {Promise<{folderId: string, fileId: string|null}>}
- */
+// [수정] getDriveAssetIds - FOLDER_NAME 전역 변수 사용
 async function getDriveAssetIds() {
     const FOLDER_NAME = 'SRAIEditor';
     let folderId = null;
-
-    // 1. "SRAIEditor" 폴더 검색
     let response = await gapi.client.drive.files.list({
         q: `mimeType='application/vnd.google-apps.folder' and name='${FOLDER_NAME}' and trashed=false`,
         fields: 'files(id)',
         spaces: 'drive'
     });
-
     if (response.result.files && response.result.files.length > 0) {
         folderId = response.result.files[0].id;
     } else {
-        // 2. 폴더가 없으면 새로 생성
-        const folderMetadata = {
-            name: FOLDER_NAME,
-            mimeType: 'application/vnd.google-apps.folder'
-        };
-        response = await gapi.client.drive.files.create({
-            resource: folderMetadata,
-            fields: 'id'
-        });
+        const folderMetadata = { name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' };
+        response = await gapi.client.drive.files.create({ resource: folderMetadata, fields: 'id' });
         folderId = response.result.id;
-        console.log(`'${FOLDER_NAME}' 폴더를 생성했습니다. ID: ${folderId}`);
     }
+    if (!folderId) throw new Error('SRAIEditor 폴더를 찾거나 생성할 수 없습니다.');
 
-    if (!folderId) {
-        throw new Error('SRAIEditor 폴더를 찾거나 생성할 수 없습니다.');
-    }
-
-    // 3. 해당 폴더 내에서 세션 파일 검색
     response = await gapi.client.drive.files.list({
         q: `name='${SESSION_DATA_FILE_NAME}' and '${folderId}' in parents and trashed=false`,
         fields: 'files(id)',
         spaces: 'drive'
     });
-
     const fileId = response.result.files?.[0]?.id || null;
-
     return { folderId, fileId };
 }
-
 
 /**
  * [교체됨] 현재 세션 데이터를 Google Drive의 'SRAIEditor' 폴더에 저장합니다.
@@ -994,77 +1020,82 @@ async function saveSessionDataToDrive(data) {
     });
 }
 
-/**
- * [교체됨] 페이지 로딩 또는 로그인 시 Google Drive에서 직전 작업 내용을 불러옵니다.
- * 로컬 저장소 로직은 완전히 제거되었습니다.
- */
+// [교체] loadAndApplySessionData - 저장된 상태로부터 전체 UI 복원
 async function loadAndApplySessionData() {
-    // 로그인 상태가 아니면 실행하지 않습니다.
-    if (!googleUser.isSignedIn()) {
-        startAutoSaveTimer(); // 로그인 후 저장을 위해 타이머는 시작
-        return;
-    }
+    if (!googleUser.isSignedIn()) return;
 
-    showLoadingPopup(); // 로딩 시작
+    showLoadingPopup();
     let loadedData = null;
 
     try {
         const { fileId } = await getDriveAssetIds();
-
         if (fileId) {
-            const contentResponse = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
-            loadedData = contentResponse.result;
+            const response = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
+            loadedData = response.result;
         }
     } catch (e) {
-        console.error('Google Drive에서 데이터를 불러오는 중 오류 발생:', e);
-        showCustomAlert('Google Drive 데이터 로드 중 오류가 발생했습니다.');
+        console.error('Drive 데이터 로드 오류:', e);
+        showCustomAlert('데이터 로드 중 오류가 발생했습니다.');
     } finally {
-        hideLoadingPopup(); // 로딩 종료
+        hideLoadingPopup();
     }
 
-    if (loadedData) {
-        // Editor 내용 복원
-        const editorData = loadedData.editor;
-        if (editorData && mainTextArea && memoTextArea && docTitleInput) {
-            docTitleInput.value = editorData.docTitle || '';
-            mainTextArea.value = editorData.content || '';
-            memoTextArea.value = editorData.memoContent || '';
+    if (loadedData && loadedData.components) {
+        // 모든 컴포넌트(컬럼)에 대해 루프 실행
+        for (const componentId in loadedData.components) {
+            const column = document.querySelector(`.${componentId}`);
+            if (!column) continue;
+
+            const tabData = loadedData.components[componentId].tabs;
+            const tabContentArea = column.querySelector('.tab-content-area');
+            const tabList = column.querySelector('.tab-list');
+            const addButton = column.querySelector('.add-tab-btn');
+
+            // 기존 탭 모두 삭제
+            tabContentArea.innerHTML = '';
+            tabList.innerHTML = '';
+
+            if (tabData.length === 0) { // 저장된 탭이 없으면 기본 탭 하나 생성
+                 addButton.click();
+            } else {
+                 for (const tab of tabData) {
+                    addButton.click(); // 새 탭 추가
+                    const newPane = column.querySelector('.tab-content-pane:last-child');
+                    const newTab = column.querySelector('.tab:last-child');
+                    
+                    // 탭 이름 설정
+                    newTab.querySelector('span:first-of-type').textContent = tab.name;
+
+                    // 탭 콘텐츠 채우기
+                    if (componentId === 'Section2-3') { // Editor
+                        newPane.querySelector('#docTitle').value = tab.content.docTitle || '';
+                        newPane.querySelector('#mainTextArea').value = tab.content.mainContent || '';
+                        newPane.querySelector('#memoTextArea').value = tab.content.memoContent || '';
+                    } else if (componentId === 'Section2-2') { // AI Chat
+                        const messagesContainer = newPane.querySelector('.chat-messages');
+                        messagesContainer.innerHTML = ''; // 기본 메시지 삭제
+                        tab.content.messages.forEach(msg => {
+                            const msgDiv = document.createElement('div');
+                            msgDiv.className = `message message-${msg.sender}`;
+                            msgDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">${msg.text.replace(/\n/g, '<br>')}</div><button class="copy-btn" title="내용 복사">📋</button></div>`;
+                            msgDiv.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(msg.text));
+                            messagesContainer.appendChild(msgDiv);
+                        });
+                    }
+                 }
+            }
+            // 첫 번째 탭을 활성화 상태로 만듦
+            const firstTab = column.querySelector('.tab');
+            if(firstTab) firstTab.click();
         }
-
-        // Chat 내용 복원
-        const chatData = loadedData.chat;
-        const chatMessagesContainer = document.querySelector('.Section2-2 .chat-messages');
-        if (chatData && chatData.messages && chatMessagesContainer) {
-            chatMessagesContainer.innerHTML = ''; // 기본 메시지 삭제
-            chatData.messages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                msgDiv.className = `message message-${msg.sender}`;
-                // 복사 버튼 등을 포함한 HTML 구조를 일관성 있게 생성
-                const contentHTML = `<div class="message-content">${msg.text.replace(/\n/g, '<br>')}</div>`;
-                const copyBtnHTML = `<button class="copy-btn" title="내용 복사">📋</button>`;
-                const wrapperHTML = (msg.sender === 'user')
-                    ? `<div class="message-wrapper">${contentHTML}${copyBtnHTML}</div>`
-                    : `<div class="message-wrapper">${copyBtnHTML}${contentHTML}</div>`;
-
-                msgDiv.innerHTML = wrapperHTML;
-
-                // 복사 버튼 이벤트 리스너 추가
-                msgDiv.querySelector('.copy-btn').addEventListener('click', () => {
-                     navigator.clipboard.writeText(msg.text).catch(err => console.error('복사 실패: ', err));
-                });
-
-                chatMessagesContainer.appendChild(msgDiv);
-            });
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-        }
-        showCustomAlert(`Google Drive에서 직전 작업 내용을 불러왔습니다.`);
-    } else {
-         console.log("Google Drive에 저장된 세션 파일이 없습니다.");
+        showCustomAlert('Google Drive에서 직전 작업 내용을 불러왔습니다.');
     }
 
-    startAutoSaveTimer(); // 데이터 로드 완료 후 자동 저장 타이머 시작
+    startAutoSaveTimer();
 }
-    
+
+
+     
 // --- 자동 저장 타이머 ---
 function startAutoSaveTimer() {
     if (autoSaveTimerIntervalId) clearInterval(autoSaveTimerIntervalId);
@@ -1559,18 +1590,21 @@ function initPrompterFeature() {
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-
-    document.getElementById('google-sign-in-button').addEventListener('click', handleAuthClick);
-    document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);    
+    // 커스텀 로그인 버튼에 클릭 이벤트 연결
+    document.getElementById('custom-google-signin-button').addEventListener('click', handleAuthClick);
     
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('user-phone').textContent = userPhone;
-    
-    initPrompterFeature();
-    initAiChatFeature();
-    initEditorFeature();
+    // 기존 로그인/로그아웃 버튼 이벤트 리스너 (헤더에 버튼을 남겨둘 경우 필요)
+    document.getElementById('google-sign-in-button').addEventListener('click', handleAuthClick);
+    document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);    
+    
+    document.getElementById('user-name').textContent = userName;
+    document.getElementById('user-phone').textContent = userPhone;
+    
+    initPrompterFeature();
+    initAiChatFeature();
+    initEditorFeature();
 
-    loadingPopup = document.getElementById('loadingPopup');
+    loadingPopup = document.getElementById('loadingPopup');
 
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
@@ -1597,5 +1631,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
 </script>
 
+<div id="loginOverlay" class="login-overlay" style="display: none;">
+    <div class="login-popup">
+        <h2 class="login-title">SaeRo AI Editor</h2>
+        <p class="login-description">
+            모든 작업 내용은 Google Drive에 안전하게 저장됩니다.<br>
+            서비스를 이용하려면 Google 로그인이 필요합니다.
+        </p>
+        <button id="custom-google-signin-button" class="google-signin-button">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+            <span>Sign in with Google</span>
+        </button>
+    </div>
+</div>
+    
 </body>
 </html>
