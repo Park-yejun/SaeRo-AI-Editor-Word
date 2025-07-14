@@ -830,8 +830,6 @@ function performUndo() { if (undoStack.length > 0) { const previous = undoStack.
 // SECTION 2.5: Google 인증 및 데이터 관리 (신규 추가)
 // ==================================================================
 
-// --- Google API 초기화 콜백 ---
-
 // [신규] 로그인 팝업 표시/숨김 함수
 function showLoginPopup() {
     document.getElementById('loginOverlay').style.display = 'flex';
@@ -906,7 +904,7 @@ function updateLoginUI(isSignedIn) {
     document.getElementById('google-sign-in-button').style.display = isSignedIn ? 'none' : 'inline-block';
     document.getElementById('google-sign-out-button').style.display = isSignedIn ? 'inline-block' : 'none';
 }
-
+    
 // --- 데이터 캡처, 저장, 로드 ---
 
 // [교체] captureCurrentState - 모든 탭의 상태를 저장
@@ -1590,22 +1588,31 @@ function initPrompterFeature() {
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // 커스텀 로그인 버튼에 클릭 이벤트 연결
-    document.getElementById('custom-google-signin-button').addEventListener('click', handleAuthClick);
+    // 팝업 안의 로그인 버튼에 이벤트 연결
+    document.getElementById('custom-google-signin-button').addEventListener('click', handleAuthClick);
     
-    // 기존 로그인/로그아웃 버튼 이벤트 리스너 (헤더에 버튼을 남겨둘 경우 필요)
-    document.getElementById('google-sign-in-button').addEventListener('click', handleAuthClick);
-    document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);    
-    
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('user-phone').textContent = userPhone;
-    
-    initPrompterFeature();
-    initAiChatFeature();
-    initEditorFeature();
+    // 헤더의 로그아웃 버튼 이벤트 연결
+    document.getElementById('google-sign-out-button').addEventListener('click', handleSignoutClick);
+    
+    // 기존 등록 사용자 정보 표시
+    document.getElementById('user-name').textContent = userName;
+    document.getElementById('user-phone').textContent = userPhone;
+    
+    // 초기 UI 구조 생성
+    initPrompterFeature();
+    initAiChatFeature();
+    initEditorFeature();
 
-    loadingPopup = document.getElementById('loadingPopup');
+    loadingPopup = document.getElementById('loadingPopup');
 
+    // 단축키 이벤트 리스너
+    document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { 
+            event.preventDefault(); 
+            updateAndSaveSession();
+            showCustomAlert('현재 내용이 수동으로 저장되었습니다.');
+        }
+    
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
             event.preventDefault();
@@ -1635,7 +1642,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="login-popup">
         <h2 class="login-title">SaeRo AI Editor</h2>
         <p class="login-description">
-            모든 작업 내용은 Google Drive에 안전하게 저장됩니다.<br>
+            작업 내용은 Google Drive에 저장됩니다.<br>
             서비스를 이용하려면 Google 로그인이 필요합니다.
         </p>
         <button id="custom-google-signin-button" class="google-signin-button">
