@@ -776,28 +776,61 @@ function gapiLoaded() {
 }
 
 function gisLoaded() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        // 사용자가 로그인을 성공하면 이 callback이 실행됩니다.
-        callback: async (tokenResponse) => {
-            // 토큰이 유효한지 확인합니다.
-            if (tokenResponse && tokenResponse.access_token) {
-                // 1. 로그인 상태를 '로그인 됨'으로 변경
-                googleUser = { isSignedIn: () => true };
-                
-                // 2. UI를 '로그아웃' 버튼으로 업데이트
-                updateLoginUI(true);
-                
-                // 3. 로그인 성공 직후, Google Drive에서 데이터 로드를 시작합니다.
-                await loadAndApplySessionData(); 
-            }
-        },
-    });
-    gisInited = true;
-    maybeEnableButtons();
-}
+    let isLoginTriggered = false; // 로그인 절차가 시작되었는지 추적하는 플래그
 
+    // --- 자동 로그인을 위한 ID 클라이언트 초기화 ---
+    google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: (response) => {
+            isLoginTriggered = true; // 자동 로그인이 감지됨
+            handleCredentialResponse(response);
+        },
+        auto_select: true
+    });
+
+    // --- 토큰 클라이언트 초기화 ---
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                googleUser = { isSignedIn: () => true };
+                updateLoginUI(true);
+                await loadAndApplySessionData();
+            }
+        },
+    });
+
+    gisInited = true;
+    maybeEnableButtons();
+    
+    // --- 페이지 로드 시 자동 로그인 또는 One Tap UI 표시 시도 ---
+    google.accounts.id.prompt((notification) => {
+        // One Tap UI가 표시되지 않는 경우 (예: 사용자가 닫았거나, 팝업이 차단된 경우)
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // 짧은 시간(1.5초) 후에 로그인 절차가 시작되지 않았다면,
+            // 신규 방문자로 간주하고 수동으로 로그인 창을 호출합니다.
+            setTimeout(() => {
+                if (!isLoginTriggered && !googleUser.isSignedIn()) {
+                    console.log("자동 로그인이 감지되지 않아 수동 로그인 팝업을 호출합니다.");
+                    // 로그인 버튼을 클릭했을 때와 동일한 함수를 호출하여 팝업을 띄웁니다.
+                    handleAuthClick(); 
+                }
+            }, 1500); 
+        }
+    });
+}
+    
+// --- 💡 [추가] 자동 로그인 성공 시 실행될 콜백 함수 ---
+// google.accounts.id.initialize의 callback으로 지정된 함수입니다.
+function handleCredentialResponse(response) {
+    // 자동 로그인 또는 One Tap 로그인이 성공했다는 신호를 받으면,
+    // Drive API 접근에 필요한 access token을 '조용히' 요청합니다.
+    // prompt: 'none' 옵션은 사용자에게 추가적인 팝업을 띄우지 않습니다.
+    console.log("자동 로그인 성공. Access Token 요청 시작...");
+    tokenClient.requestAccessToken({ prompt: 'none' });
+}
+    
 function maybeEnableButtons() {
     if (gapiInited && gisInited) {
         document.getElementById('google-sign-in-button').disabled = false;
