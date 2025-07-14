@@ -607,6 +607,9 @@ let undoStack = {}; // 💡 배열([])이 아닌 객체({})로 변경해야 합�
 let loadingTimerIntervalId = null;
 let loadingStartTime = 0;
 
+let isDomReady = false;
+let isGapiReady = false;
+    
 // ==================================================================
 // SECTION 1: HTML 콘텐츠 생성 함수
 // ==================================================================
@@ -763,35 +766,32 @@ function performUndo() { if (undoStack.length > 0) { const previous = undoStack.
 // SECTION 2.5: Google 인증 및 데이터 관리 (신규 추가)
 // ==================================================================
 
-// [신규] 로그인 팝업 표시/숨김 함수
-
 function gisLoaded() {
-    // 1. 토큰 클라이언트 초기화
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
                 googleUser = { isSignedIn: () => true };
-                // hideLoginPopup(); // 더 이상 필요 없으므로 삭제
                 updateLoginUI(true);
                 await loadAndApplySessionData();
             } else {
-                showCustomAlert("로그인에 실패했습니다. 다시 시도해주세요.");
+                console.log("로그인 절차가 완료되지 않았습니다.");
+                // 사용자가 팝업을 닫으면 다시 로그인 시도
+                handleAuthClick(); 
             }
         },
     });
 
-    // 2. Google API 클라이언트 초기화
     gapi.load('client', () => {
         gapi.client.init({
             discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
         }).then(() => {
-            // 모든 초기화가 끝난 후, 즉시 구글 로그인 절차를 시작합니다.
-            handleAuthClick(); 
+            isGapiReady = true; // 구글 API 준비 완료 상태로 변경
+            initializeApp();    // 앱 초기화 시도
         });
     });
-}
+} 
     
 // [삭제] gapiLoaded 함수는 더 이상 필요 없으므로 삭제합니다.
 // <script src="...api.js" onload="gapiLoaded()"> 부분도 onload를 지우고 src만 남깁니다.
@@ -1514,40 +1514,39 @@ function initPrompterFeature() {
     createTabComponent('.Section2-1', '■ Prompter Selector', getPrompterListHtml(), null);
 }
 
+function initializeApp() {
+    // DOM과 GAPI가 모두 준비되었을 때만 실행
+    if (isDomReady && isGapiReady) {
+        // 1. UI 구조 생성
+        initPrompterFeature();
+        initAiChatFeature();
+        initEditorFeature();
+        loadingPopup = document.getElementById('loadingPopup');
+
+        // 2. 로그인 절차 시작
+        handleAuthClick();
+    }
+}    
+    
 // ==================================================================
 // SECTION 5: DOM 로딩 완료 후 실행
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // 이벤트 위임(Event Delegation)을 사용하여 클릭 이벤트 처리
+    isDomReady = true; // DOM 준비 완료 상태로 변경
+    initializeApp();   // 앱 초기화 시도
+
+    // 이벤트 위임(Event Delegation)으로 클릭 이벤트 처리
     document.body.addEventListener('click', function(event) {
-        
-        // [로그아웃 버튼] 클릭 시
         if (event.target.closest('#google-sign-out-button')) {
             handleSignoutClick();
         }
-        
-        // [전체삭제 버튼] 클릭 시
         if (event.target.closest('.delete-all')) {
             clearTextArea();
         }
-        
-        // [문서작성 버튼] 클릭 시
         if (event.target.closest('.create-doc')) {
             createWordClientSide();
         }
     });
-
-    // 기존 등록 사용자 정보 표시
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('user-phone').textContent = userPhone;
-    
-    // 초기 UI 구조 생성
-    initPrompterFeature();
-    initAiChatFeature();
-    initEditorFeature();
-
-    loadingPopup = document.getElementById('loadingPopup');
     
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
