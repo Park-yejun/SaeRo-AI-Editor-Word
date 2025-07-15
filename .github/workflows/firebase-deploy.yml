@@ -33,7 +33,7 @@ jobs:
             --region asia-northeast3 \
             --project sraieditor20250711 \
             --allow-unauthenticated \
-            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},GOOGLE_SHEETS_CREDENTIALS=${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}"
 
       # 4. 프론트엔드를 Firebase Hosting에 배포합니다.
       - name: Deploy Frontend to Firebase Hosting
