@@ -399,7 +399,7 @@ def handle_check_user():
             return jsonify({"error": "Name and email are required"}), 400
 
         # 구글 시트 열기
-        spreadsheet = SHEET_CLIENT.open_by_key("10FWgDt04ox83Fc2iDM66seswL1k2W-rfhO")
+        spreadsheet = SHEET_CLIENT.open_by_key("10FWgDt04ox83Fc2iDM66seswL1k2W-rfhOE1GHrjZtI")
         worksheet = spreadsheet.worksheet("시트1")
 
         # 모든 데이터 가져오기 (헤더 포함)
