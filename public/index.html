@@ -189,7 +189,7 @@
     }
     .syntax-buttons-wrapper {
         gap: 4px; /* 버튼 사이 간격은 4px로 유지 */
-    }    
+    }   
 
     .global-settings-grid .form-group input,
     .global-settings-grid .form-group select {
@@ -238,8 +238,8 @@
     .syntax-button-like { background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; transition: background-color 0.2s; }
     .syntax-button-like:hover { background-color: #f1f3f5; }
 
-    #mainTextArea, #memoTextArea { 
-        width: 100%; height: 100%; border: 1px solid var(--border-color); 
+    #mainTextArea, #memoTextArea { 
+        width: 100%; height: 100%; border: 1px solid var(--border-color); 
         resize: none;
         font-family: var(--font-family-main); /* 글꼴을 다른 UI와 동일하게 지정 */
         font-size: 12px; /* "찾기:"와 같은 크기로 수정 */
@@ -446,14 +446,13 @@
 /* ================================================================== */
 /* == 팝업 및 로딩 창 스타일 (최상위 z-index 적용) == */
 /* ================================================================== */
-.loading-popup,
-.custom-alert-popup {
+.popup-overlay {
     position: fixed; /* 화면 전체를 기준으로 위치 */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); /* 반투명 배경 */
+    background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -462,56 +461,64 @@
     box-sizing: border-box;
 }
 
-.loading-popup-content,
-.custom-alert-content {
+.popup-content {
     background-color: white;
-    padding: 25px 35px;
+    padding: 30px 40px;
     border-radius: 12px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     text-align: center;
-    max-width: 400px;
+    max-width: 450px;
     width: 100%;
 }
 
-.custom-alert-content p,
-.loading-popup-content p {
-    margin: 0 0 20px 0;
-    font-size: 16px;
+.popup-content h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 22px;
     color: var(--text-color);
 }
+.popup-content p {
+    margin: 0 0 25px 0;
+    font-size: 16px;
+    color: var(--text-secondary-color);
+    line-height: 1.6;
+}
 
-.custom-alert-content .button-group {
+.popup-content .button-group {
     display: flex;
     gap: 10px;
     justify-content: center;
 }
 
-.custom-alert-content button,
-.loading-popup-content button {
-    padding: 8px 20px;
+.popup-content .popup-button {
+    padding: 10px 24px;
     border: 1px solid #ccc;
     border-radius: 6px;
     cursor: pointer;
     background-color: #f8f9fa;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
-    min-width: 80px;
+    min-width: 100px;
+    transition: background-color 0.2s, filter 0.2s;
 }
-.custom-alert-content button:hover,
-.loading-popup-content button:hover {
+.popup-content .popup-button:hover {
     background-color: #e9ecef;
 }
 
-/* 확인, 취소 버튼 등 특정 버튼에 대한 스타일 */
-.custom-alert-content #customConfirmOkButton,
-.custom-alert-content #customAlertOkButton {
+/* 확인, 취소, 로그인 버튼 등 특정 버튼에 대한 스타일 */
+.popup-content .popup-button.primary {
     background-color: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
 }
-.custom-alert-content #customConfirmOkButton:hover,
-.custom-alert-content #customAlertOkButton:hover {
+.popup-content .popup-button.primary:hover {
+    background-color: var(--primary-color);
     filter: brightness(1.1);
+}
+.popup-content .popup-button.danger {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
 }
 
 /* 로딩바 스타일 */
@@ -521,7 +528,7 @@
     background-color: #e9ecef;
     border-radius: 4px;
     overflow: hidden;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 .progress-bar-animated {
     width: 100%;
@@ -547,16 +554,14 @@
             <span class="brand-logo">SaeRo <span class="brand-highlight">AI Editor</span></span>
             
             <div style="display: flex; align-items: center; gap: 20px; font-size: 0.9em; color: var(--text-secondary-color);">
-                <span>[<span id="user-name"></span>, <span id="user-phone"></span>]</span>
+                <span class="user-info">[<span id="user-name"></span>, <span id="user-email"></span>]</span>
                 <span id="google-auth-container">
-                    <button id="google-sign-in-button" disabled style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; font-size: 12px;">Google 로그인</button>
                     <button id="google-sign-out-button" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #dc3545; background-color: #fbebee; color: #dc3545; cursor: pointer; font-size: 12px;">로그아웃</button>
                 </span>
             </div>
         </div>
 
-        <div class="content-container">
-            <div class="content-column Section2-1"></div>
+        <div class="content-container" style="display: none;"> <div class="content-column Section2-1"></div>
             <div class="content-column Section2-2"></div>
             <div class="content-column Section2-3"></div>
         </div>
@@ -565,24 +570,34 @@
             <p>&copy; 2025 법률사무소 새로 박예준. All Rights Reserved.</p>
         </div>
     </div>
-  <div id="loadingPopup" class="loading-popup" style="display: none;"> 
-    <div class="loading-popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
-  </div>
-  <div id="customConfirm" class="custom-alert-popup" style="display: none;">
-    <div class="custom-alert-content"> <p id="customConfirmMessage"></p> <div class="button-group"><button id="customConfirmOkButton">확인</button><button id="customConfirmCancelButton">취소</button></div></div>
-  </div>
-  <div id="customAlert" class="custom-alert-popup" style="display: none;">
-    <div class="custom-alert-content"> <p id="customAlertMessage"></p> <button id="customAlertOkButton">확인</button></div>
-  </div>
+
+    <div id="loadingPopup" class="popup-overlay" style="display: none;"> 
+        <div class="popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
+    </div>
+    <div id="customConfirm" class="popup-overlay" style="display: none;">
+        <div class="popup-content"> <h2 id="customConfirmTitle"></h2> <p id="customConfirmMessage"></p> <div class="button-group"><button id="customConfirmOkButton" class="popup-button primary">확인</button><button id="customConfirmCancelButton" class="popup-button">취소</button></div></div>
+    </div>
+    <div id="customAlert" class="popup-overlay" style="display: none;">
+        <div class="popup-content"> <h2 id="customAlertTitle"></h2> <p id="customAlertMessage"></p> <button id="customAlertOkButton" class="popup-button primary">확인</button></div>
+    </div>
+    <div id="loginPopup" class="popup-overlay" style="display: none;">
+        <div class="popup-content">
+            <h2>SaeRo AI Editor 시작하기</h2>
+            <p>모든 작업을 클라우드에 안전하게 저장하고 이어하기 위해 Google 계정으로 로그인해주세요.<br><small>계정이 없으시면 로그인 과정에서 새로 만드실 수 있습니다.</small></p>
+            <button id="custom-google-sign-in-button" class="popup-button primary">Google 계정으로 로그인</button>
+        </div>
+    </div>
+
 
 <script>
 // ==================================================================
-// 최종 수정된 전체 스크립트 코드
+// 최종 수정된 전체 스크립트 코드 (1단계)
 // ==================================================================
 
 // --- 전역 변수 선언 ---
 const CLIENT_ID = '983424591109-l4r2v7jnvmnrr8h1mm1j688k0h87spv4.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
+const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app";
 const SESSION_DATA_FILE_NAME = 'storage.json';
 
 let tokenClient;
@@ -591,8 +606,8 @@ let currentSessionData = {};
 const AUTO_SAVE_INTERVAL = 20 * 1000;
 let autoSaveTimerIntervalId = null;
 
-const userName = "박예준2";
-const userPhone = "010-9876-5432";
+let userInfo = { name: '', email: '' };
+
 let mainTextArea, memoTextArea, docTitleInput, fontFamilySelect, fontSizeInput, lineSpacingInput, paraSpacingAfterInput, loadingPopup, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput;
 let undoStack = {};
 let loadingTimerIntervalId = null;
@@ -604,23 +619,35 @@ let isGapiReady = false;
 // ==================================================================
 // SECTION 0: 앱 초기화 관제탑 함수
 // ==================================================================
-function initializeApp() {
-    // DOM과 GAPI가 모두 준비되었을 때만 실행
+async function initializeApp() {
     if (isDomReady && isGapiReady) {
-        // 1. UI 구조 생성
-        initPrompterFeature();
-        initAiChatFeature();
-        initEditorFeature();
-        loadingPopup = document.getElementById('loadingPopup');
-        
-        // 2. 사용자 정보 표시
-        document.getElementById('user-name').textContent = userName;
-        document.getElementById('user-phone').textContent = userPhone;
+        // 1. URL에서 사용자 정보 파싱
+        const urlParams = new URLSearchParams(window.location.search);
+        userInfo.name = urlParams.get('name');
+        userInfo.email = urlParams.get('email');
 
-        // 3. 로그인 절차 시작
-        handleAuthClick();
+        if (!userInfo.name || !userInfo.email) {
+            showCustomAlert('오류', '필수 사용자 정보(이름, 이메일)가 URL에 포함되지 않았습니다.');
+            return;
+        }
+
+        // 2. 백엔드에 사용자 인증 요청
+        try {
+            const isAuthorized = await checkUserAuthorization(userInfo.name, userInfo.email);
+            if (isAuthorized) {
+                // 3. 인증 성공 시 UI 초기화 및 로그인 절차 시작
+                document.getElementById('user-name').textContent = userInfo.name;
+                document.getElementById('user-email').textContent = userInfo.email;
+                document.getElementById('loginPopup').style.display = 'flex'; // 커스텀 로그인 팝업 표시
+            } else {
+                showCustomAlert('인증 실패', '등록된 사용자가 아닙니다. 관리자에게 문의하여 사용자 등록을 진행해주세요.');
+            }
+        } catch (error) {
+            showCustomAlert('서버 오류', `사용자 인증 중 오류가 발생했습니다: ${error.message}`);
+        }
     }
 }
+
 
 // ==================================================================
 // SECTION 1: HTML 콘텐츠 생성 함수
@@ -712,9 +739,9 @@ function getEditorHtml() {
           <textarea id="memoTextArea" placeholder="여기는 본문 작성시에 참고할 내용을 메모하는 부분입니다.&#10;문서로 작성되지 않습니다."></textarea>
         </div>
         <div class="action-buttons">
-            <button class="open-drive" onclick="showCustomAlert('준비 중인 기능입니다.')">Google Drive</button>
-            <button class="load-file" onclick="showCustomAlert('준비 중인 기능입니다.')">불러오기</button>
-            <button class="save-draft" onclick="showCustomAlert('준비 중인 기능입니다.')">저장<small style="font-weight: normal; margin-left: 3px;">[Ctrl+S]</small></button>
+            <button class="open-drive" onclick="showCustomAlert('안내', '준비 중인 기능입니다.')">Google Drive</button>
+            <button class="load-file" onclick="showCustomAlert('안내', '준비 중인 기능입니다.')">불러오기</button>
+            <button class="save-draft" onclick="showCustomAlert('안내', '준비 중인 기능입니다.')">저장<small style="font-weight: normal; margin-left: 3px;">[Ctrl+S]</small></button>
             <button class="create-doc" onclick="createWordClientSide()">문서작성</button>
             <button class="delete-all" onclick="clearTextArea()">전체삭제</button>
         </div>
@@ -731,7 +758,7 @@ function getAiChatHtml() {
           </div>
         </div>
         <div class="chat-input-section">
-         
+        
           <div class="file-preview-container-wrapper">
             <div class="file-preview-container"></div>
           </div>
@@ -739,7 +766,7 @@ function getAiChatHtml() {
           <div class="chat-input-wrapper">
             <textarea class="message-input" placeholder="여기에 메시지 입력... (Shift+Enter로 줄바꿈)" rows="1"></textarea>
             <input type="file" class="file-input" multiple hidden accept="*/*">
-           
+            
             <div class="chat-button-group">
                 <button class="chat-tool-btn upload-btn" title="파일 업로드">File</button>
                 <button class="chat-tool-btn send-btn" title="보내기">➤</button>
@@ -758,24 +785,36 @@ function getAiChatHtml() {
 // --- UI 피드백 함수 (팝업, 로딩) ---
 function showLoadingPopup() { if (!loadingPopup) return; loadingPopup.style.display = 'flex'; loadingStartTime = Date.now(); const timeDisplay = document.getElementById('loadingTimeElapsed'); if (timeDisplay) timeDisplay.textContent = '[0.00 Sec]'; if (loadingTimerIntervalId) clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = setInterval(() => { const elapsedTimeMs = Date.now() - loadingStartTime; if (timeDisplay) timeDisplay.textContent = `[${(elapsedTimeMs / 1000).toFixed(2)} Sec]`; }, 100); }
 function hideLoadingPopup() { if (!loadingPopup) return; loadingPopup.style.display = 'none'; if (loadingTimerIntervalId) { clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = null; } }
-function showCustomAlert(message) { const popup = document.getElementById('customAlert'); const messageEl = document.getElementById('customAlertMessage'); const okButton = document.getElementById('customAlertOkButton'); if (!popup || !messageEl || !okButton) return; messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => popup.style.display = 'none'; }
-function showCustomConfirm(message) { const popup = document.getElementById('customConfirm'); const messageEl = document.getElementById('customConfirmMessage'); const okButton = document.getElementById('customConfirmOkButton'); const cancelButton = document.getElementById('customConfirmCancelButton'); if (!popup || !messageEl || !okButton || !cancelButton) return Promise.reject(); return new Promise((resolve, reject) => { messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => { popup.style.display = 'none'; resolve(true); }; cancelButton.onclick = () => { popup.style.display = 'none'; reject(false); }; }); }
+function showCustomAlert(title, message) { const popup = document.getElementById('customAlert'); const titleEl = document.getElementById('customAlertTitle'); const messageEl = document.getElementById('customAlertMessage'); const okButton = document.getElementById('customAlertOkButton'); if (!popup || !messageEl || !okButton) return; titleEl.textContent = title; messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => popup.style.display = 'none'; }
+function showCustomConfirm(title, message) { const popup = document.getElementById('customConfirm'); const titleEl = document.getElementById('customConfirmTitle'); const messageEl = document.getElementById('customConfirmMessage'); const okButton = document.getElementById('customConfirmOkButton'); const cancelButton = document.getElementById('customConfirmCancelButton'); if (!popup || !messageEl || !okButton || !cancelButton) return Promise.reject(); return new Promise((resolve, reject) => { titleEl.textContent = title; messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => { popup.style.display = 'none'; resolve(true); }; cancelButton.onclick = () => { popup.style.display = 'none'; reject(false); }; }); }
 
 // --- 핵심 편집 기능 ---
-function createDocument() { if (!mainTextArea) return; showLoadingPopup(); let docTitle = docTitleInput.value.trim(); if (!docTitle) { docTitle = generateFilename('[작성]'); } const settings = { fontFamily: fontFamilySelect.value, fontSize: fontSizeInput.value, lineSpacing: lineSpacingInput.value, paraSpacingAfter: paraSpacingAfterInput.value, pageOrientation: document.getElementById('pageOrientation').value, marginTop: marginTopInput.value, marginBottom: marginBottomInput.value, marginLeft: marginLeftInput.value, marginRight: marginRightInput.value }; const payload = { content: mainTextArea.value, memoContent: memoTextArea.value }; google.script.run.withSuccessHandler(onCreateDocSuccess).withFailureHandler(onFailure).createDocumentInDrive(payload, docTitle, settings); }
-function saveDraft() { if (!mainTextArea) return; showLoadingPopup(); let docTitle = docTitleInput.value.trim(); if (!docTitle) { docTitle = generateFilename('[저장]'); } const settings = { fontFamily: fontFamilySelect.value, fontSize: fontSizeInput.value, lineSpacing: lineSpacingInput.value, paraSpacingAfter: paraSpacingAfterInput.value, pageOrientation: document.getElementById('pageOrientation').value, marginTop: marginTopInput.value, marginBottom: marginBottomInput.value, marginLeft: marginLeftInput.value, marginRight: marginRightInput.value }; const payload = { content: mainTextArea.value, memoContent: memoTextArea.value, settings: settings }; google.script.run.withSuccessHandler(message => { hideLoadingPopup(); showCustomAlert(message); }).withFailureHandler(onFailure).saveDraftToServer(payload, docTitle); }
-async function clearTextArea() { if (!mainTextArea) return; try { await showCustomConfirm('문서 제목, 내용, 메모를 전체 삭제하시겠습니까?'); mainTextArea.value = ''; memoTextArea.value = ''; docTitleInput.value = ''; showCustomAlert('제목, 내용, 메모가 모두 삭제되었습니다.'); } catch (error) { console.log('삭제 취소'); } }
+async function clearTextArea() { if (!mainTextArea) return; try { await showCustomConfirm('전체 삭제', '문서 제목, 내용, 메모를 전체 삭제하시겠습니까?'); mainTextArea.value = ''; memoTextArea.value = ''; docTitleInput.value = ''; showCustomAlert('완료', '제목, 내용, 메모가 모두 삭제되었습니다.'); } catch (error) { console.log('삭제 취소'); } }
 
 // --- 찾기/바꾸기 및 실행 취소 ---
-function simpleFindNext() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; if (!term) { showCustomAlert('찾을 단어를 입력하세요.'); return; } let searchStartIndex = mainTextArea.selectionEnd; let foundIndex = mainTextArea.value.indexOf(term, searchStartIndex); if (foundIndex === -1) { const wrapAroundIndex = mainTextArea.value.indexOf(term, 0); if (wrapAroundIndex === -1 || wrapAroundIndex === mainTextArea.selectionStart) { showCustomAlert('"' + term + '" 을(를) 문서에서 찾을 수 없습니다.'); return; } foundIndex = wrapAroundIndex; } mainTextArea.focus(); mainTextArea.setSelectionRange(foundIndex, foundIndex + term.length); }
+function simpleFindNext() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; if (!term) { showCustomAlert('안내', '찾을 단어를 입력하세요.'); return; } let searchStartIndex = mainTextArea.selectionEnd; let foundIndex = mainTextArea.value.indexOf(term, searchStartIndex); if (foundIndex === -1) { const wrapAroundIndex = mainTextArea.value.indexOf(term, 0); if (wrapAroundIndex === -1 || wrapAroundIndex === mainTextArea.selectionStart) { showCustomAlert('검색 실패', '"' + term + '" 을(를) 문서에서 찾을 수 없습니다.'); return; } foundIndex = wrapAroundIndex; } mainTextArea.focus(); mainTextArea.setSelectionRange(foundIndex, foundIndex + term.length); }
 function simpleReplaceCurrent() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; if (start === end || mainTextArea.value.substring(start, end) !== term) { simpleFindNext(); return; } undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); const before = mainTextArea.value.substring(0, start); const after = mainTextArea.value.substring(end); mainTextArea.value = before + replacement + after; mainTextArea.setSelectionRange(start, start + replacement.length); simpleFindNext(); }
-async function previewSelectionBeforeReplaceAll() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; if (!term) { showCustomAlert("찾을 단어를 입력하세요."); return; } const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; const scope = (start !== end) ? "선택된 영역" : "전체 문서"; try { await showCustomConfirm(`'${term}' 을(를) '${replacement}' (으)로 ${scope}에서 모두 바꾸시겠습니까?`); undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); let count = 0; const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'); if (scope === "선택된 영역") { const before = mainTextArea.value.substring(0, start); const selected = mainTextArea.value.substring(start, end); const after = mainTextArea.value.substring(end); const replacedText = selected.replace(regex, () => { count++; return replacement; }); mainTextArea.value = before + replacedText + after; mainTextArea.setSelectionRange(start, start + replacedText.length); } else { mainTextArea.value = mainTextArea.value.replace(regex, () => { count++; return replacement; }); } showCustomAlert(`총 ${count}개를 바꿨습니다.`); } catch (error) { console.log('모두 바꾸기 취소'); } }
+async function previewSelectionBeforeReplaceAll() { if (!mainTextArea) return; const term = document.getElementById('simpleFindText').value; const replacement = document.getElementById('simpleReplaceText').value; if (!term) { showCustomAlert("안내", "찾을 단어를 입력하세요."); return; } const start = mainTextArea.selectionStart; const end = mainTextArea.selectionEnd; const scope = (start !== end) ? "선택된 영역" : "전체 문서"; try { await showCustomConfirm('모두 바꾸기', `'${term}' 을(를) '${replacement}' (으)로 ${scope}에서 모두 바꾸시겠습니까?`); undoStack.push({ value: mainTextArea.value, selectionStart: start, selectionEnd: end }); let count = 0; const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'); if (scope === "선택된 영역") { const before = mainTextArea.value.substring(0, start); const selected = mainTextArea.value.substring(start, end); const after = mainTextArea.value.substring(end); const replacedText = selected.replace(regex, () => { count++; return replacement; }); mainTextArea.value = before + replacedText + after; mainTextArea.setSelectionRange(start, start + replacedText.length); } else { mainTextArea.value = mainTextArea.value.replace(regex, () => { count++; return replacement; }); } showCustomAlert('완료', `총 ${count}개를 바꿨습니다.`); } catch (error) { console.log('모두 바꾸기 취소'); } }
 function resetFindReplace() { if (!mainTextArea) return; document.getElementById('simpleFindText').value = ''; document.getElementById('simpleReplaceText').value = ''; mainTextArea.focus(); }
 function performUndo() { if (undoStack.length > 0) { const previous = undoStack.pop(); mainTextArea.value = previous.value; mainTextArea.setSelectionRange(previous.selectionStart, previous.selectionEnd); mainTextArea.focus(); } }
 
 // ==================================================================
 // SECTION 2.5: Google 인증 및 데이터 관리
 // ==================================================================
+async function checkUserAuthorization(name, email) {
+    const response = await fetch(`${BACKEND_URL}/check-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Server error');
+    }
+    const data = await response.json();
+    return data.authorized;
+}
+
 function gisLoaded() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
@@ -784,10 +823,19 @@ function gisLoaded() {
             if (tokenResponse && tokenResponse.access_token) {
                 googleUser = { isSignedIn: () => true };
                 updateLoginUI(true);
-                await loadAndApplySessionData();
+                
+                document.getElementById('loginPopup').style.display = 'none';
+                document.querySelector('.content-container').style.display = 'flex';
+                
+                // 앱의 주요 기능(탭, 에디터 등)을 여기서 초기화
+                initPrompterFeature();
+                initAiChatFeature();
+                initEditorFeature();
+                loadingPopup = document.getElementById('loadingPopup');
+
+                // await loadAndApplySessionData(); // 2단계에서 구현
             } else {
-                console.log("로그인 절차가 완료되지 않았습니다.");
-                handleAuthClick(); 
+                showCustomAlert("로그인 실패", "Google 로그인 절차를 완료하지 못했습니다. 다시 시도해주세요.");
             }
         },
     });
@@ -807,7 +855,7 @@ function handleAuthClick() {
 }   
 
 async function handleSignoutClick() {
-    await updateAndSaveSession(); 
+    // await updateAndSaveSession();  // 2단계에서 구현
     
     const token = gapi.client.getToken();
     if (token !== null) {
@@ -816,10 +864,12 @@ async function handleSignoutClick() {
             googleUser = { isSignedIn: () => false };
             updateLoginUI(false);
             
-            currentSessionData = {};
+            // UI 초기화
+            document.querySelector('.content-container').style.display = 'none';
             document.querySelector('.content-container').innerHTML = '<div class="content-column Section2-1"></div><div class="content-column Section2-2"></div><div class="content-column Section2-3"></div>';
-            showCustomAlert('로그아웃 되었습니다.');
-            handleAuthClick();
+            
+            showCustomAlert('로그아웃 완료', '성공적으로 로그아웃되었습니다.');
+            document.getElementById('loginPopup').style.display = 'flex'; // 다시 로그인 팝업 표시
         });
     }
 }
@@ -827,184 +877,18 @@ async function handleSignoutClick() {
 function updateLoginUI(isSignedIn) {
     document.getElementById('google-sign-out-button').style.display = isSignedIn ? 'inline-block' : 'none';
     if(isSignedIn) {
-        document.getElementById('user-name').textContent = userName;
-        document.getElementById('user-phone').textContent = userPhone;
+        document.getElementById('user-name').textContent = userInfo.name;
+        document.getElementById('user-email').textContent = userInfo.email;
     }
-}
-   
-function captureCurrentState() {
-    const components = {};
-    document.querySelectorAll('.content-column').forEach(column => {
-        const componentId = column.classList[1]; // e.g., 'Section2-1'
-        const tabsData = [];
-        
-        column.querySelectorAll('.tab-content-pane').forEach(pane => {
-            const tabId = pane.dataset.tabId;
-            const tabElement = column.querySelector(`.tab[data-tab-id="${tabId}"] span:first-of-type`);
-            const tabName = tabElement ? tabElement.textContent : 'tab';
-            
-            let content = {};
-            if (componentId === 'Section2-3') { // Editor
-                content = {
-                    docTitle: pane.querySelector('#docTitle')?.value,
-                    mainContent: pane.querySelector('#mainTextArea')?.value,
-                    memoContent: pane.querySelector('#memoTextArea')?.value,
-                };
-            } else if (componentId === 'Section2-2') { // AI Chat
-                const messages = [];
-                pane.querySelectorAll('.chat-messages .message').forEach(msgEl => {
-                    const sender = msgEl.classList.contains('message-user') ? 'user' : 'assistant';
-                    const text = msgEl.querySelector('.message-content')?.innerText;
-                    if(text) messages.push({ sender, text });
-                });
-                content = { messages };
-            }
-            
-            tabsData.push({ id: tabId, name: tabName, content });
-        });
-        components[componentId] = { tabs: tabsData };
-    });
-    currentSessionData = { components };
 }
     
-async function updateAndSaveSession() {
-    if (!googleUser.isSignedIn()) {
-        return; 
-    }
-    
-    captureCurrentState();
+// --- 2단계에서 구현할 함수들 ---
+function captureCurrentState() { console.log("captureCurrentState called - TBD in Step 2"); }
+async function updateAndSaveSession() { console.log("updateAndSaveSession called - TBD in Step 2"); }
+async function loadAndApplySessionData() { console.log("loadAndApplySessionData called - TBD in Step 2");}
+function startAutoSaveTimer() { console.log("startAutoSaveTimer called - TBD in Step 2"); }
+// ---
 
-    try {
-        await saveSessionDataToDrive(currentSessionData);
-    } catch (e) {
-        console.error('Google Drive 자동 저장 실패:', e);
-    }
-}
-
-async function getDriveAssetIds() {
-    const FOLDER_NAME = 'SRAIEditor';
-    let folderId = null;
-    let response = await gapi.client.drive.files.list({
-        q: `mimeType='application/vnd.google-apps.folder' and name='${FOLDER_NAME}' and trashed=false`,
-        fields: 'files(id)',
-        spaces: 'drive'
-    });
-    if (response.result.files && response.result.files.length > 0) {
-        folderId = response.result.files[0].id;
-    } else {
-        const folderMetadata = { name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' };
-        response = await gapi.client.drive.files.create({ resource: folderMetadata, fields: 'id' });
-        folderId = response.result.id;
-    }
-    if (!folderId) throw new Error('SRAIEditor 폴더를 찾거나 생성할 수 없습니다.');
-
-    response = await gapi.client.drive.files.list({
-        q: `name='${SESSION_DATA_FILE_NAME}' and '${folderId}' in parents and trashed=false`,
-        fields: 'files(id)',
-        spaces: 'drive'
-    });
-    const fileId = response.result.files?.[0]?.id || null;
-    return { folderId, fileId };
-}
-
-async function saveSessionDataToDrive(data) {
-    const { folderId, fileId } = await getDriveAssetIds();
-    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-
-    const form = new FormData();
-    const fileMetadata = { name: SESSION_DATA_FILE_NAME };
-
-    if (!fileId) {
-        fileMetadata.parents = [folderId];
-    }
-
-    form.append('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
-    form.append('file', blob);
-
-    const path = fileId
-        ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
-        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-    await gapi.client.request({
-        path: path,
-        method: fileId ? 'PATCH' : 'POST',
-        body: form,
-    });
-}
-
-async function loadAndApplySessionData() {
-    if (!googleUser.isSignedIn()) return;
-
-    showLoadingPopup();
-    let loadedData = null;
-
-    try {
-        const { fileId } = await getDriveAssetIds();
-        if (fileId) {
-            const response = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
-            loadedData = response.result;
-        }
-    } catch (e) {
-        console.error('Drive 데이터 로드 오류:', e);
-        showCustomAlert('데이터 로드 중 오류가 발생했습니다.');
-    } finally {
-        hideLoadingPopup();
-    }
-
-    if (loadedData && loadedData.components) {
-        for (const componentId in loadedData.components) {
-            const column = document.querySelector(`.${componentId}`);
-            if (!column) continue;
-
-            const tabData = loadedData.components[componentId].tabs;
-            const tabContentArea = column.querySelector('.tab-content-area');
-            const tabList = column.querySelector('.tab-list');
-            const addButton = column.querySelector('.add-tab-btn');
-
-            tabContentArea.innerHTML = '';
-            tabList.innerHTML = '';
-
-            if (tabData.length === 0) {
-                addButton.click();
-            } else {
-                for (const tab of tabData) {
-                    addButton.click(); 
-                    const newPane = column.querySelector('.tab-content-pane:last-child');
-                    const newTab = column.querySelector('.tab:last-child');
-                    
-                    newTab.querySelector('span:first-of-type').textContent = tab.name;
-
-                    if (componentId === 'Section2-3') {
-                        newPane.querySelector('#docTitle').value = tab.content.docTitle || '';
-                        newPane.querySelector('#mainTextArea').value = tab.content.mainContent || '';
-                        newPane.querySelector('#memoTextArea').value = tab.content.memoContent || '';
-                    } else if (componentId === 'Section2-2') { 
-                        const messagesContainer = newPane.querySelector('.chat-messages');
-                        messagesContainer.innerHTML = ''; 
-                        tab.content.messages.forEach(msg => {
-                            const msgDiv = document.createElement('div');
-                            msgDiv.className = `message message-${msg.sender}`;
-                            msgDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">${msg.text.replace(/\n/g, '<br>')}</div><button class="copy-btn" title="내용 복사">📋</button></div>`;
-                            msgDiv.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(msg.text));
-                            messagesContainer.appendChild(msgDiv);
-                        });
-                    }
-                }
-            }
-            const firstTab = column.querySelector('.tab');
-            if(firstTab) firstTab.click();
-        }
-        showCustomAlert('Google Drive에서 직전 작업 내용을 불러왔습니다.');
-    }
-
-    startAutoSaveTimer();
-}
-   
-function startAutoSaveTimer() {
-    if (autoSaveTimerIntervalId) clearInterval(autoSaveTimerIntervalId);
-    autoSaveTimerIntervalId = setInterval(updateAndSaveSession, AUTO_SAVE_INTERVAL);
-}
-    
 function generateFilename(prefix) { const now = new Date(); const yymmdd = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0'); const hhmmss = now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0') + now.getSeconds().toString().padStart(2, '0'); return `${prefix}제목없음_${yymmdd}_T${hhmmss}`; }
 function insertSyntax(syntax) { if (!mainTextArea) return; const { scrollTop, selectionStart, selectionEnd, value } = mainTextArea; mainTextArea.value = value.substring(0, selectionStart) + syntax + value.substring(selectionEnd); mainTextArea.focus(); mainTextArea.selectionStart = mainTextArea.selectionEnd = selectionStart + syntax.length; mainTextArea.scrollTop = scrollTop; }
 function handleContextScroll(isScrollingDown) { if (!mainTextArea) return; const computedStyle = window.getComputedStyle(mainTextArea); const lineHeight = parseFloat(computedStyle.lineHeight); const scrollAmount = mainTextArea.clientHeight - (3 * lineHeight); let newScrollTop = isScrollingDown ? mainTextArea.scrollTop + scrollAmount : mainTextArea.scrollTop - scrollAmount; mainTextArea.scrollTo({ top: newScrollTop, behavior: 'smooth' }); }
@@ -1024,7 +908,6 @@ async function createWordClientSide() {
         margin_right: parseFloat(marginRightInput.value) || 2.5,
     };
     try {
-        const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app";
         const response = await fetch(`${BACKEND_URL}/create-docx`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', },
@@ -1043,15 +926,15 @@ async function createWordClientSide() {
             a.click();
             window.URL.revokeObjectURL(url);
             a.remove();
-            showCustomAlert(`'${fileName}' 파일 다운로드가 시작됩니다.`);
+            showCustomAlert('다운로드 시작', `'${fileName}' 파일 다운로드가 시작됩니다.`);
         } else {
             const error = await response.json();
-            showCustomAlert('파일 생성 중 오류 발생: ' + error.error);
+            showCustomAlert('오류', '파일 생성 중 오류 발생: ' + error.error);
         }
     } catch (error) {
         hideLoadingPopup();
         console.error('Error:', error);
-        showCustomAlert('백엔드 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        showCustomAlert('연결 오류', '백엔드 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
     }
 }
 
@@ -1116,7 +999,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
         if (target.classList.contains('close-tab')) {
             event.stopPropagation();
             const tabToRemove = target.closest('.tab');
-            if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('마지막 탭은 닫을 수 없습니다.'); }
+            if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('안내', '마지막 탭은 닫을 수 없습니다.'); }
             
             let nextTabToActivate = null;
             if (tabToRemove.classList.contains('active')) {
@@ -1243,8 +1126,6 @@ function initializeAiChatComponent(targetSelector, title) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         
             try {
-                const BACKEND_URL = "https://sraieditor20250711-983424591109.asia-northeast3.run.app";
-                
                 const response = await fetch(`${BACKEND_URL}/chat-gemini`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1252,7 +1133,7 @@ function initializeAiChatComponent(targetSelector, title) {
                 });
             
                 const data = await response.json();
-                
+            
                 loadingMessageDiv.remove(); 
             
                 let responseText = response.ok ? data.reply : `오류: ${data.error || '알 수 없는 오류'}`;
@@ -1284,7 +1165,7 @@ function initializeAiChatComponent(targetSelector, title) {
         
         const handleFiles = (files) => {
             if (uploadedFiles.length + files.length > 10) {
-                showCustomAlert('파일은 최대 10개까지 업로드할 수 있습니다.');
+                showCustomAlert('업로드 제한', '파일은 최대 10개까지 업로드할 수 있습니다.');
                 return;
             }
             for (const file of files) {
@@ -1349,7 +1230,7 @@ function initializeAiChatComponent(targetSelector, title) {
         if (target.classList.contains('close-tab')) {
             event.stopPropagation();
             const tabToRemove = target.closest('.tab');
-            if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('마지막 탭은 닫을 수 없습니다.'); }
+            if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('안내', '마지막 탭은 닫을 수 없습니다.'); }
             let nextTabToActivate = null;
             if (tabToRemove.classList.contains('active')) {
                 nextTabToActivate = tabToRemove.previousElementSibling || tabToRemove.nextElementSibling;
@@ -1450,6 +1331,8 @@ document.addEventListener('DOMContentLoaded', () => {
     isDomReady = true;
     initializeApp();
 
+    document.getElementById('custom-google-sign-in-button').addEventListener('click', handleAuthClick);
+
     document.body.addEventListener('click', function(event) {
         if (event.target.closest('#google-sign-out-button')) {
             handleSignoutClick();
@@ -1479,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
             if (undoStack.length > 0) { event.preventDefault(); performUndo(); }
         }
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); if (mainTextArea) saveDraft(); }
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); if (mainTextArea) showCustomAlert('안내','저장 기능은 개발 중입니다.'); }
         if (event.key === 'PageDown') { event.preventDefault(); if (mainTextArea) handleContextScroll(true); }
         if (event.key === 'PageUp') { event.preventDefault(); if (mainTextArea) handleContextScroll(false); }
     });
