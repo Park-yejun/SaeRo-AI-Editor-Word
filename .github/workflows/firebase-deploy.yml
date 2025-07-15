@@ -1,4 +1,4 @@
-# 파일 이름: .github/workflows/firebase-deploy.yml (직접 명령어 실행 방식))
+# 파일 이름: .github/workflows/firebase-deploy.yml
 
 name: Deploy Frontend and Backend
 
@@ -25,14 +25,15 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
 
-      # 3. 🚀 백엔드를 Google Cloud Run에 배포합니다. (명령어 직접 실행)
+      # 3. 백엔드를 Google Cloud Run에 배포합니다.
       - name: Deploy Backend to Cloud Run
         run: |
           gcloud run deploy sraieditor20250711 \
             --source . \
             --region asia-northeast3 \
             --project sraieditor20250711 \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
 
       # 4. 프론트엔드를 Firebase Hosting에 배포합니다.
       - name: Deploy Frontend to Firebase Hosting
