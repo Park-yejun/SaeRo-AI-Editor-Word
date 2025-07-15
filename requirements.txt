@@ -8,3 +8,5 @@ Pillow
 requests
 gunicorn
 google-generativeai
+gspread
+oauth2client
