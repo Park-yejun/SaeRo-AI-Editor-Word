@@ -10,7 +10,7 @@
 
     <script defer src="https://apis.google.com/js/api.js"></script>
     <script defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-    
+
 <style>
     /* ================================================================== */
     /* == 기본 및 전체 레이아웃 (Redesigned by Gemini v3.2 Final) == */
@@ -55,7 +55,7 @@
     .brand-logo { font-weight: bold; color: #c62828; font-size: 1.2em; }
     .brand-highlight { color: black; }
     .user-info { font-size: 0.9em; color: var(--text-secondary-color); }
-    
+
     .content-container {
         flex-grow: 1;
         display: flex;
@@ -73,7 +73,7 @@
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    
+
     /* ================================================================== */
     /* == 탭 시스템 스타일 (Redesigned by Gemini v3.2 Final) == */
     /* ================================================================== */
@@ -96,37 +96,37 @@
         background-color: transparent;
         display: flex;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--border-color); 
+        border-bottom: 1px solid var(--border-color);
         padding: 0 10px;
     }
-    .tab-list { 
-        display: flex; 
-        flex: 1; 
+    .tab-list {
+        display: flex;
+        flex: 1;
         overflow: hidden;
-        white-space: nowrap; 
+        white-space: nowrap;
         align-items: center;
     }
     .tab-list::-webkit-scrollbar { display: none; }
     .tab-list { -ms-overflow-style: none; scrollbar-width: none; }
 
-    .tab { 
-        padding: 8px 12px; 
-        cursor: pointer; 
-        background-color: transparent; 
+    .tab {
+        padding: 8px 12px;
+        cursor: pointer;
+        background-color: transparent;
         border: 1px solid var(--border-color);
         color: var(--text-secondary-color);
         transition: all 0.2s ease-in-out;
         flex-shrink: 0;
-        border-radius: 6px; 
+        border-radius: 6px;
         margin-right: 5px;
         border-bottom-left-radius: 0; /* 아래쪽 모서리 각 제거 */
         border-bottom-right-radius: 0;
     }
-    .tab:hover { 
+    .tab:hover {
         background-color: #e9ecef;
-        color: var(--text-color); 
+        color: var(--text-color);
     }
-    .tab.active { 
+    .tab.active {
         background-color: #007bff; /* 진한 회색 배경 */
         color: white;              /* 흰색 글자 */
         font-weight: 600;          /* 굵은 글씨체 */
@@ -134,15 +134,15 @@
     }
 
     .tab-nav-start, /* 쉼표를 이용해 새 클래스 추가 */
-    .tab-controls { 
-        display: flex; 
+    .tab-controls {
+        display: flex;
         align-items: center; /* 자식 요소를 세로 중앙 정렬 */
         margin-right: 4px;
     }
-    
-    .tab-nav-button { 
-        padding: 0 10px; height: 28px; display: flex; align-items: center; justify-content: center; 
-        background-color: #fff; border: 1px solid var(--border-color); cursor: pointer; 
+
+    .tab-nav-button {
+        padding: 0 10px; height: 28px; display: flex; align-items: center; justify-content: center;
+        background-color: #fff; border: 1px solid var(--border-color); cursor: pointer;
         font-size: 1.1em; color: var(--text-secondary-color); border-radius: 6px; margin-left: 5px;
     }
     .tab-nav-button:hover { background-color: #e9ecef; }
@@ -163,11 +163,11 @@
         border-radius: 8px;
         flex-shrink: 0;
     }
-    
+
     .form-group { display: flex; align-items: center; width: auto; }
     .form-group label { margin-right: 8px; color: var(--text-secondary-color); flex-shrink: 0; font-size: 12px; }
     .form-group input, .form-group select {
-        padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px; 
+        padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px;
         font-size: 12px; transition: border-color 0.2s, box-shadow 0.2s;
     }
     .form-group input:focus, .form-group select:focus {
@@ -189,28 +189,28 @@
     }
     .syntax-buttons-wrapper {
         gap: 4px; /* 버튼 사이 간격은 4px로 유지 */
-    }   
+    }
 
     .global-settings-grid .form-group input,
     .global-settings-grid .form-group select {
         width: 80px; /* 모든 입력창의 너비를 90px로 고정 */
     }
 
-    .syntax-buttons-wrapper button { 
-        height: 30px; 
+    .syntax-buttons-wrapper button {
+        height: 30px;
         width: 100px;  /* 가로 크기 100px로 고정 */
         padding: 0 10px; /* 내부 여백 조정 */
-        font-size: 11px; 
-        color: white; 
-        border: none; 
-        border-radius: 4px; 
-        cursor: pointer; 
+        font-size: 11px;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
         transition: filter 0.2s;
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
-    
+
     .syntax-buttons-wrapper .button-text {
         white-space: nowrap;
         overflow: hidden;
@@ -222,7 +222,7 @@
         margin-left: 6px;
         flex-shrink: 0; /* 단축키가 줄어들지 않도록 설정 */
     }
-    
+
     .syntax-buttons-wrapper button:hover { filter: brightness(1.15); }
     .syntax-buttons-wrapper button.group1 { background-color: #0056b3; }
     .syntax-buttons-wrapper button.group2 { background-color: #138496; }
@@ -238,15 +238,15 @@
     .syntax-button-like { background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 11.5px; padding: 4px 8px; cursor: pointer; transition: background-color 0.2s; }
     .syntax-button-like:hover { background-color: #f1f3f5; }
 
-    #mainTextArea, #memoTextArea { 
-        width: 100%; height: 100%; border: 1px solid var(--border-color); 
+    #mainTextArea, #memoTextArea {
+        width: 100%; height: 100%; border: 1px solid var(--border-color);
         resize: none;
         font-family: var(--font-family-main); /* 글꼴을 다른 UI와 동일하게 지정 */
         font-size: 12px; /* "찾기:"와 같은 크기로 수정 */
         line-height: 1.6; padding: 12px;
         border-radius: 8px;
     }
-    
+
     #mainTextArea:focus, #memoTextArea:focus {
         outline: none; border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
@@ -254,21 +254,21 @@
     /* ▼▼▼ [수정] 텍스트 입력창을 감싸는 컨테이너 스타일 복원 ▼▼▼ */
     .main-editor-area { flex-grow: 1; display: flex; flex-direction: column; }
     .section[style*="min-height"] { flex-grow: 1; display: flex; flex-direction: column; }
-    
-    .action-buttons { 
-        display: flex; justify-content: flex-end; gap: 8px; 
+
+    .action-buttons {
+        display: flex; justify-content: flex-end; gap: 8px;
         margin-top: auto;
         padding-top: 6px;
         flex-wrap: nowrap;
         flex-shrink: 0;
-    } 
-    .action-buttons button { 
-        padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; 
+    }
+    .action-buttons button {
+        padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;
         font-weight: 600; font-size: 13px; transition: all 0.2s ease-in-out; white-space: nowrap;
     }
     .action-buttons button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .action-buttons .open-drive { background-color: var(--primary-color); color: white; }
-    .action-buttons .load-file { background-color: var(--secondary-color); color: white; } 
+    .action-buttons .load-file { background-color: var(--secondary-color); color: white; }
     .action-buttons .save-draft { background-color: var(--warning-color); color: black; }
     .action-buttons .create-doc { background-color: #28a745; color: white; }
     .action-buttons .delete-all { background-color: var(--danger-color); color: white; }
@@ -341,7 +341,7 @@
 .message-user .message-wrapper {
     flex-direction: row-reverse; /* 내용과 버튼 순서 뒤집기 */
 }
-    
+
 /* --- ▼▼▼ 핵심 수정 영역 ▼▼▼ --- */
 
 .chat-input-section {
@@ -459,6 +459,13 @@
     z-index: 10000; /* 다른 모든 요소들보다 위에 있도록 높은 값 설정 */
     padding: 20px;
     box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.popup-overlay.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
 .popup-content {
@@ -469,7 +476,13 @@
     text-align: center;
     max-width: 450px;
     width: 100%;
+    transform: scale(0.9);
+    transition: transform 0.3s;
 }
+.popup-overlay.visible .popup-content {
+    transform: scale(1);
+}
+
 
 .popup-content h2 {
     margin-top: 0;
@@ -515,10 +528,14 @@
     background-color: var(--primary-color);
     filter: brightness(1.1);
 }
-.popup-content .popup-button.danger {
-    background-color: var(--danger-color);
+.popup-content .popup-button.secondary {
+    background-color: var(--secondary-color);
     color: white;
-    border-color: var(--danger-color);
+    border-color: var(--secondary-color);
+}
+.popup-content .popup-button.secondary:hover {
+    background-color: var(--secondary-color);
+    filter: brightness(1.1);
 }
 
 /* 로딩바 스타일 */
@@ -544,15 +561,15 @@
     from { background-position: 40px 0; }
     to { background-position: 0 0; }
 }
-    
+
 </style>
-    
+
 </head>
 <body>
     <div class="main-container">
         <div class="Section1">
             <span class="brand-logo">SaeRo <span class="brand-highlight">AI Editor</span></span>
-            
+
             <div style="display: flex; align-items: center; gap: 20px; font-size: 0.9em; color: var(--text-secondary-color);">
                 <span class="user-info">[<span id="user-name"></span>, <span id="user-email"></span>]</span>
                 <span id="google-auth-container">
@@ -561,7 +578,7 @@
             </div>
         </div>
 
-        <div class="content-container" style="display: none;"> <div class="content-column Section2-1"></div>
+        <div class="content-container" style="visibility: hidden;"> <div class="content-column Section2-1"></div>
             <div class="content-column Section2-2"></div>
             <div class="content-column Section2-3"></div>
         </div>
@@ -571,16 +588,16 @@
         </div>
     </div>
 
-    <div id="loadingPopup" class="popup-overlay" style="display: none;"> 
-        <div class="popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div> 
+    <div id="loadingPopup" class="popup-overlay">
+        <div class="popup-content"> <p>작업 진행 중... <span id="loadingTimeElapsed">[0.00 Sec]</span></p> <div class="progress-bar-container"><div class="progress-bar-animated"></div></div></div>
     </div>
-    <div id="customConfirm" class="popup-overlay" style="display: none;">
+    <div id="customConfirm" class="popup-overlay">
         <div class="popup-content"> <h2 id="customConfirmTitle"></h2> <p id="customConfirmMessage"></p> <div class="button-group"><button id="customConfirmOkButton" class="popup-button primary">확인</button><button id="customConfirmCancelButton" class="popup-button">취소</button></div></div>
     </div>
-    <div id="customAlert" class="popup-overlay" style="display: none;">
-        <div class="popup-content"> <h2 id="customAlertTitle"></h2> <p id="customAlertMessage"></p> <button id="customAlertOkButton" class="popup-button primary">확인</button></div>
+    <div id="customAlert" class="popup-overlay">
+        <div class="popup-content"> <h2 id="customAlertTitle"></h2> <p id="customAlertMessage"></p> <div id="customAlertButtons" class="button-group"><button id="customAlertOkButton" class="popup-button primary">확인</button></div></div>
     </div>
-    <div id="loginPopup" class="popup-overlay" style="display: none;">
+    <div id="loginPopup" class="popup-overlay">
         <div class="popup-content">
             <h2>SaeRo AI Editor 시작하기</h2>
             <p>모든 작업을 클라우드에 안전하게 저장하고 이어하기 위해 Google 계정으로 로그인해주세요.<br><small>계정이 없으시면 로그인 과정에서 새로 만드실 수 있습니다.</small></p>
@@ -591,7 +608,7 @@
 
 <script>
 // ==================================================================
-// 최종 수정된 전체 스크립트 코드 (1단계)
+// 최종 수정된 전체 스크립트 코드 (구글 시트 연동)
 // ==================================================================
 
 // --- 전역 변수 선언 ---
@@ -621,7 +638,6 @@ let isGapiReady = false;
 // ==================================================================
 async function initializeApp() {
     if (isDomReady && isGapiReady) {
-        // 1. URL에서 사용자 정보 파싱
         const urlParams = new URLSearchParams(window.location.search);
         userInfo.name = urlParams.get('name');
         userInfo.email = urlParams.get('email');
@@ -631,16 +647,21 @@ async function initializeApp() {
             return;
         }
 
-        // 2. 백엔드에 사용자 인증 요청
         try {
             const isAuthorized = await checkUserAuthorization(userInfo.name, userInfo.email);
             if (isAuthorized) {
-                // 3. 인증 성공 시 UI 초기화 및 로그인 절차 시작
                 document.getElementById('user-name').textContent = userInfo.name;
                 document.getElementById('user-email').textContent = userInfo.email;
-                document.getElementById('loginPopup').style.display = 'flex'; // 커스텀 로그인 팝업 표시
+                showPopup('loginPopup');
             } else {
-                showCustomAlert('인증 실패', '등록된 사용자가 아닙니다. 관리자에게 문의하여 사용자 등록을 진행해주세요.');
+                showCustomAlert(
+                    '인증 실패',
+                    '사용자 명단에 없습니다. 사용자 접수 부탁합니다.',
+                    [{ text: '사용자 접수', class: 'secondary', action: () => {
+                        // 추후 실제 접수 사이트 URL로 변경
+                        window.open('about:blank', '_blank');
+                    }}, { text: '닫기', class: 'primary' }]
+                );
             }
         } catch (error) {
             showCustomAlert('서버 오류', `사용자 인증 중 오류가 발생했습니다: ${error.message}`);
@@ -650,7 +671,7 @@ async function initializeApp() {
 
 
 // ==================================================================
-// SECTION 1: HTML 콘텐츠 생성 함수
+// SECTION 1: HTML 콘텐츠 생성 함수 (변경 없음)
 // ==================================================================
 function getPrompterListHtml() {
     return `<ul><li>프롬프터 항목 1</li><li>프롬프터 항목 2</li><li>프롬프터 항목 3</li></ul>`;
@@ -660,7 +681,7 @@ function getEditorHtml() {
     return `
       <div class="container">
         <div class="section">
-          <div class="form-group"> 
+          <div class="form-group">
             <label for="docTitle">문서제목:</label>
             <input type="text" id="docTitle" placeholder="입력하지 않으면 날짜/시간으로 자동 생성">
           </div>
@@ -671,7 +692,7 @@ function getEditorHtml() {
             <div class="form-group"> <label for="fontSize">크기(pt):</label> <input type="number" id="fontSize" value="12" min="8"> </div>
             <div class="form-group"> <label for="lineSpacing">줄간격:</label> <input type="number" id="lineSpacing" value="1.5" step="0.1" min="1"> </div>
             <div class="form-group"> <label for="paraSpacingAfter">문단뒤(pt):</label> <input type="number" id="paraSpacingAfter" value="10" min="0"> </div>
-            <div class="form-group"> <label for="pageOrientation">용지방향:</label> <select id="pageOrientation"> <option value="PORTRAIT" selected>세로</option> <option value="LANDSCAPE">가로</option></select></div> 
+            <div class="form-group"> <label for="pageOrientation">용지방향:</label> <select id="pageOrientation"> <option value="PORTRAIT" selected>세로</option> <option value="LANDSCAPE">가로</option></select></div>
             <div class="form-group"> <label for="marginTop">여백-위(cm):</label> <input type="number" id="marginTop" value="2.0" step="0.1" min="0"> </div>
             <div class="form-group"> <label for="marginBottom">여백-아래(cm):</label> <input type="number" id="marginBottom" value="2.0" step="0.1" min="0"> </div>
             <div class="form-group"> <label for="marginLeft">여백-좌(cm):</label> <input type="number" id="marginLeft" value="2.5" step="0.1" min="0"> </div>
@@ -728,7 +749,7 @@ function getEditorHtml() {
             <button class="syntax-button-like" onclick="simpleFindNext()">다음 찾기</button>
             <button class="syntax-button-like" onclick="simpleReplaceCurrent()">바꾸기</button>
             <button class="syntax-button-like" onclick="previewSelectionBeforeReplaceAll()">모두 바꾸기</button>
-            <button class="syntax-button-like" onclick="performUndo()">되돌리기</button> 
+            <button class="syntax-button-like" onclick="performUndo()">되돌리기</button>
             <button class="syntax-button-like" onclick="resetFindReplace()">초기화</button>
           </div>
         </div>
@@ -758,7 +779,7 @@ function getAiChatHtml() {
           </div>
         </div>
         <div class="chat-input-section">
-        
+
           <div class="file-preview-container-wrapper">
             <div class="file-preview-container"></div>
           </div>
@@ -766,7 +787,7 @@ function getAiChatHtml() {
           <div class="chat-input-wrapper">
             <textarea class="message-input" placeholder="여기에 메시지 입력... (Shift+Enter로 줄바꿈)" rows="1"></textarea>
             <input type="file" class="file-input" multiple hidden accept="*/*">
-            
+
             <div class="chat-button-group">
                 <button class="chat-tool-btn upload-btn" title="파일 업로드">File</button>
                 <button class="chat-tool-btn send-btn" title="보내기">➤</button>
@@ -777,16 +798,54 @@ function getAiChatHtml() {
       </div>
     `;
 }
-    
+
 // ==================================================================
 // SECTION 2: UI 로직 및 핵심 기능 함수
 // ==================================================================
+function showPopup(popupId) {
+    const popup = document.getElementById(popupId);
+    if(popup) popup.classList.add('visible');
+}
+function hidePopup(popupId) {
+    const popup = document.getElementById(popupId);
+    if(popup) popup.classList.remove('visible');
+}
 
 // --- UI 피드백 함수 (팝업, 로딩) ---
-function showLoadingPopup() { if (!loadingPopup) return; loadingPopup.style.display = 'flex'; loadingStartTime = Date.now(); const timeDisplay = document.getElementById('loadingTimeElapsed'); if (timeDisplay) timeDisplay.textContent = '[0.00 Sec]'; if (loadingTimerIntervalId) clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = setInterval(() => { const elapsedTimeMs = Date.now() - loadingStartTime; if (timeDisplay) timeDisplay.textContent = `[${(elapsedTimeMs / 1000).toFixed(2)} Sec]`; }, 100); }
-function hideLoadingPopup() { if (!loadingPopup) return; loadingPopup.style.display = 'none'; if (loadingTimerIntervalId) { clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = null; } }
-function showCustomAlert(title, message) { const popup = document.getElementById('customAlert'); const titleEl = document.getElementById('customAlertTitle'); const messageEl = document.getElementById('customAlertMessage'); const okButton = document.getElementById('customAlertOkButton'); if (!popup || !messageEl || !okButton) return; titleEl.textContent = title; messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => popup.style.display = 'none'; }
-function showCustomConfirm(title, message) { const popup = document.getElementById('customConfirm'); const titleEl = document.getElementById('customConfirmTitle'); const messageEl = document.getElementById('customConfirmMessage'); const okButton = document.getElementById('customConfirmOkButton'); const cancelButton = document.getElementById('customConfirmCancelButton'); if (!popup || !messageEl || !okButton || !cancelButton) return Promise.reject(); return new Promise((resolve, reject) => { titleEl.textContent = title; messageEl.textContent = message; popup.style.display = 'flex'; okButton.onclick = () => { popup.style.display = 'none'; resolve(true); }; cancelButton.onclick = () => { popup.style.display = 'none'; reject(false); }; }); }
+function showLoadingPopup() { showPopup('loadingPopup'); loadingStartTime = Date.now(); const timeDisplay = document.getElementById('loadingTimeElapsed'); if (timeDisplay) timeDisplay.textContent = '[0.00 Sec]'; if (loadingTimerIntervalId) clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = setInterval(() => { const elapsedTimeMs = Date.now() - loadingStartTime; if (timeDisplay) timeDisplay.textContent = `[${(elapsedTimeMs / 1000).toFixed(2)} Sec]`; }, 100); }
+function hideLoadingPopup() { hidePopup('loadingPopup'); if (loadingTimerIntervalId) { clearInterval(loadingTimerIntervalId); loadingTimerIntervalId = null; } }
+function showCustomAlert(title, message, buttons) {
+    const popup = document.getElementById('customAlert');
+    const titleEl = document.getElementById('customAlertTitle');
+    const messageEl = document.getElementById('customAlertMessage');
+    const buttonGroup = document.getElementById('customAlertButtons');
+    if (!popup || !titleEl || !messageEl || !buttonGroup) return;
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    buttonGroup.innerHTML = ''; // 기존 버튼 삭제
+
+    if (buttons && buttons.length > 0) {
+        buttons.forEach(btnInfo => {
+            const button = document.createElement('button');
+            button.textContent = btnInfo.text;
+            button.className = `popup-button ${btnInfo.class || ''}`;
+            button.onclick = () => {
+                hidePopup('customAlert');
+                if (btnInfo.action) btnInfo.action();
+            };
+            buttonGroup.appendChild(button);
+        });
+    } else {
+        const okButton = document.createElement('button');
+        okButton.textContent = '확인';
+        okButton.className = 'popup-button primary';
+        okButton.onclick = () => hidePopup('customAlert');
+        buttonGroup.appendChild(okButton);
+    }
+    showPopup('customAlert');
+}
+function showCustomConfirm(title, message) { const popup = document.getElementById('customConfirm'); const titleEl = document.getElementById('customConfirmTitle'); const messageEl = document.getElementById('customConfirmMessage'); const okButton = document.getElementById('customConfirmOkButton'); const cancelButton = document.getElementById('customConfirmCancelButton'); if (!popup || !messageEl || !okButton || !cancelButton) return Promise.reject(); return new Promise((resolve, reject) => { titleEl.textContent = title; messageEl.textContent = message; showPopup('customConfirm'); okButton.onclick = () => { hidePopup('customConfirm'); resolve(true); }; cancelButton.onclick = () => { hidePopup('customConfirm'); reject(false); }; }); }
 
 // --- 핵심 편집 기능 ---
 async function clearTextArea() { if (!mainTextArea) return; try { await showCustomConfirm('전체 삭제', '문서 제목, 내용, 메모를 전체 삭제하시겠습니까?'); mainTextArea.value = ''; memoTextArea.value = ''; docTitleInput.value = ''; showCustomAlert('완료', '제목, 내용, 메모가 모두 삭제되었습니다.'); } catch (error) { console.log('삭제 취소'); } }
@@ -823,17 +882,16 @@ function gisLoaded() {
             if (tokenResponse && tokenResponse.access_token) {
                 googleUser = { isSignedIn: () => true };
                 updateLoginUI(true);
-                
-                document.getElementById('loginPopup').style.display = 'none';
-                document.querySelector('.content-container').style.display = 'flex';
-                
-                // 앱의 주요 기능(탭, 에디터 등)을 여기서 초기화
+
+                hidePopup('loginPopup');
+                document.querySelector('.content-container').style.visibility = 'visible';
+
                 initPrompterFeature();
                 initAiChatFeature();
                 initEditorFeature();
                 loadingPopup = document.getElementById('loadingPopup');
 
-                // await loadAndApplySessionData(); // 2단계에서 구현
+                // await loadAndApplySessionData(); // 다음 단계에서 구현
             } else {
                 showCustomAlert("로그인 실패", "Google 로그인 절차를 완료하지 못했습니다. 다시 시도해주세요.");
             }
@@ -848,28 +906,27 @@ function gisLoaded() {
             initializeApp();
         });
     });
-}   
+}
 
 function handleAuthClick() {
     tokenClient.requestAccessToken({ prompt: 'consent' });
-}   
+}
 
 async function handleSignoutClick() {
-    // await updateAndSaveSession();  // 2단계에서 구현
-    
+    // await updateAndSaveSession();  // 다음 단계에서 구현
+
     const token = gapi.client.getToken();
     if (token !== null) {
         google.accounts.oauth2.revoke(token.access_token, () => {
             gapi.client.setToken('');
             googleUser = { isSignedIn: () => false };
             updateLoginUI(false);
-            
-            // UI 초기화
-            document.querySelector('.content-container').style.display = 'none';
+
+            document.querySelector('.content-container').style.visibility = 'hidden';
             document.querySelector('.content-container').innerHTML = '<div class="content-column Section2-1"></div><div class="content-column Section2-2"></div><div class="content-column Section2-3"></div>';
-            
+
             showCustomAlert('로그아웃 완료', '성공적으로 로그아웃되었습니다.');
-            document.getElementById('loginPopup').style.display = 'flex'; // 다시 로그인 팝업 표시
+            showPopup('loginPopup');
         });
     }
 }
@@ -881,12 +938,12 @@ function updateLoginUI(isSignedIn) {
         document.getElementById('user-email').textContent = userInfo.email;
     }
 }
-    
-// --- 2단계에서 구현할 함수들 ---
-function captureCurrentState() { console.log("captureCurrentState called - TBD in Step 2"); }
-async function updateAndSaveSession() { console.log("updateAndSaveSession called - TBD in Step 2"); }
-async function loadAndApplySessionData() { console.log("loadAndApplySessionData called - TBD in Step 2");}
-function startAutoSaveTimer() { console.log("startAutoSaveTimer called - TBD in Step 2"); }
+
+// --- 다음 단계에서 구현할 함수들 ---
+function captureCurrentState() { console.log("captureCurrentState called - TBD"); }
+async function updateAndSaveSession() { console.log("updateAndSaveSession called - TBD"); }
+async function loadAndApplySessionData() { console.log("loadAndApplySessionData called - TBD");}
+function startAutoSaveTimer() { console.log("startAutoSaveTimer called - TBD"); }
 // ---
 
 function generateFilename(prefix) { const now = new Date(); const yymmdd = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0'); const hhmmss = now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0') + now.getSeconds().toString().padStart(2, '0'); return `${prefix}제목없음_${yymmdd}_T${hhmmss}`; }
@@ -940,7 +997,7 @@ async function createWordClientSide() {
 
 
 // ==================================================================
-// SECTION 3: 탭 컴포넌트 관리 함수
+// SECTION 3: 탭 컴포넌트 관리 함수 (변경 없음)
 // ==================================================================
 function createTabComponent(targetSelector, title, initialContentHtml, onTabActivated) {
     const container = document.querySelector(targetSelector);
@@ -949,7 +1006,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
         return;
     }
     container.innerHTML = `<div style="padding: 5px 0 0 5px; font-weight: 600;"><span>${title}</span></div><div class="tab-content-area"><div class="tab-content-pane active" data-tab-id="tab1">${initialContentHtml}</div></div><div class="tab-bar"><div class="tab-nav-start"><div class="tab-nav-button tab-scroll-btn" data-direction="-1">◀</div></div><div class="tab-list"><div class="tab active" data-tab-id="tab1"><span>tab1</span><span class="close-tab">×</span></div></div><div class="tab-controls"><div class="tab-nav-button add-tab-btn">+</div><div class="tab-nav-button tab-scroll-btn" data-direction="1">▶</div></div></div>`;
-    
+
     const tabList = container.querySelector('.tab-list');
     const tabContentArea = container.querySelector('.tab-content-area');
     const addButton = container.querySelector('.add-tab-btn');
@@ -968,7 +1025,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
             }
         }
     }
-    
+
     addButton.addEventListener('click', () => {
         tabCounter++;
         const newTabId = `tab${tabCounter}`;
@@ -976,11 +1033,11 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
         newTab.className = 'tab';
         newTab.dataset.tabId = newTabId;
         newTab.innerHTML = `<span>${newTabId}</span><span class="close-tab">×</span>`;
-        
+
         const newPane = document.createElement('div');
         newPane.className = 'tab-content-pane';
         newPane.dataset.tabId = newTabId;
-        
+
         if (container.classList.contains('Section2-3')) {
             newPane.innerHTML = getEditorHtml();
         } else {
@@ -1000,7 +1057,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
             event.stopPropagation();
             const tabToRemove = target.closest('.tab');
             if (tabList.querySelectorAll('.tab').length === 1) { return showCustomAlert('안내', '마지막 탭은 닫을 수 없습니다.'); }
-            
+
             let nextTabToActivate = null;
             if (tabToRemove.classList.contains('active')) {
                 nextTabToActivate = tabToRemove.previousElementSibling || tabToRemove.nextElementSibling;
@@ -1008,7 +1065,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
             const paneToRemove = tabContentArea.querySelector(`[data-tab-id="${tabToRemove.dataset.tabId}"]`);
             tabToRemove.remove();
             if(paneToRemove) paneToRemove.remove();
-            
+
             if (nextTabToActivate) {
                 activateTab(nextTabToActivate);
             }
@@ -1056,7 +1113,7 @@ function createTabComponent(targetSelector, title, initialContentHtml, onTabActi
             if (e.key === 'Enter') finishEditing();
         });
     });
-    
+
     container.querySelectorAll('.tab-scroll-btn').forEach(button => {
         button.addEventListener('click', () => {
             const direction = parseInt(button.dataset.direction, 10);
@@ -1090,10 +1147,10 @@ function initializeAiChatComponent(targetSelector, title) {
         const filePreviewContainer = chatPane.querySelector('.file-preview-container');
         let uploadedFiles = [];
 
-        const sendMessage = async () => { 
+        const sendMessage = async () => {
             const messageText = messageInput.value.trim();
             if (messageText === '' && uploadedFiles.length === 0) return;
-        
+
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message message-user';
             let messageHTML = '';
@@ -1111,33 +1168,33 @@ function initializeAiChatComponent(targetSelector, title) {
                 navigator.clipboard.writeText(contentToCopy).catch(err => console.error('복사 실패: ', err));
             });
             messagesContainer.appendChild(userMessageDiv);
-        
+
             messageInput.value = '';
             messageInput.style.height = 'auto';
             filePreviewContainer.innerHTML = '';
             const currentFiles = [...uploadedFiles];
             uploadedFiles = [];
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
+
             const loadingMessageDiv = document.createElement('div');
             loadingMessageDiv.className = 'message message-assistant';
             loadingMessageDiv.innerHTML = `<div class="message-wrapper"><div class="message-content">답변 생성 중...</div></div>`;
             messagesContainer.appendChild(loadingMessageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        
+
             try {
                 const response = await fetch(`${BACKEND_URL}/chat-gemini`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: messageText }),
                 });
-            
+
                 const data = await response.json();
-            
-                loadingMessageDiv.remove(); 
-            
+
+                loadingMessageDiv.remove();
+
                 let responseText = response.ok ? data.reply : `오류: ${data.error || '알 수 없는 오류'}`;
-                
+
                 const assistantMessageDiv = document.createElement('div');
                 assistantMessageDiv.className = 'message message-assistant';
                 assistantMessageDiv.innerHTML = `
@@ -1149,9 +1206,9 @@ function initializeAiChatComponent(targetSelector, title) {
                     navigator.clipboard.writeText(responseText).catch(err => console.error('복사 실패: ', err));
                 });
                 messagesContainer.appendChild(assistantMessageDiv);
-            
+
             } catch (error) {
-                loadingMessageDiv.remove(); 
+                loadingMessageDiv.remove();
                 const errorMessage = `네트워크 오류 또는 서버 연결 실패: ${error.message}`;
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message message-assistant';
@@ -1162,7 +1219,7 @@ function initializeAiChatComponent(targetSelector, title) {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
         };
-        
+
         const handleFiles = (files) => {
             if (uploadedFiles.length + files.length > 10) {
                 showCustomAlert('업로드 제한', '파일은 최대 10개까지 업로드할 수 있습니다.');
@@ -1186,13 +1243,13 @@ function initializeAiChatComponent(targetSelector, title) {
         fileInput.onchange = () => { handleFiles(fileInput.files); fileInput.value = ''; };
         messageInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
         messageInput.oninput = () => { messageInput.style.height = 'auto'; messageInput.style.height = `${messageInput.scrollHeight}px`; };
-        
+
         const chatInputSection = chatPane.querySelector('.chat-input-section');
         chatInputSection.ondragover = (e) => { e.preventDefault(); chatInputSection.style.backgroundColor = '#e9ecef'; };
         chatInputSection.ondragleave = (e) => { e.preventDefault(); chatInputSection.style.backgroundColor = '#fff'; };
         chatInputSection.ondrop = (e) => { e.preventDefault(); chatInputSection.style.backgroundColor = '#fff'; if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); };
         messageInput.onpaste = (e) => { if (e.clipboardData.files.length > 0) { e.preventDefault(); handleFiles(e.clipboardData.files); } };
-        
+
         chatPane.dataset.chatInitialized = 'true';
     };
 
@@ -1207,7 +1264,7 @@ function initializeAiChatComponent(targetSelector, title) {
             setupChatPane(correspondingPane);
         }
     };
-    
+
     addButton.addEventListener('click', () => {
         tabCounter++;
         const newTabId = `tab${tabCounter}`;
@@ -1224,7 +1281,7 @@ function initializeAiChatComponent(targetSelector, title) {
         activateTab(newTab);
         tabList.scrollLeft = tabList.scrollWidth;
     });
-    
+
     tabList.addEventListener('click', (event) => {
         const target = event.target;
         if (target.classList.contains('close-tab')) {
@@ -1292,7 +1349,7 @@ function initializeAiChatComponent(targetSelector, title) {
             tabList.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
         });
     });
-    
+
     activateTab(container.querySelector('.tab.active'));
 }
 
@@ -1344,7 +1401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             createWordClientSide();
         }
     });
-    
+
     document.addEventListener('keydown', function(event) {
         if (event.altKey) {
             event.preventDefault();
@@ -1368,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
-    
+
 </body>
 
 </html>
