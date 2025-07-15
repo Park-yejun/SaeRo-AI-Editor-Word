@@ -6,63 +6,55 @@ import os
 import re
 import requests
 import docx
-import json # 💡 [추가]
+import json
 import google.generativeai as genai
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-from datetime import datetime, timezone, timedelta # 💡 [기존]
+from datetime import datetime, timezone, timedelta
 from docx import Document
-# ... (기존 docx 임포트) ...
+from docx.shared import Pt, Cm, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.enum.section import WD_ORIENTATION
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from PIL import Image
-# 💡 [추가] Google Sheets API 관련 라이브러리
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ==============================================================================
-# 2. Flask 앱 초기화
+# 2. Flask 앱 초기화 및 설정
 # ==============================================================================
 app = Flask(__name__)
-
-# preflight request를 포함한 모든 CORS 요청을 처리하기 위해 설정을 강화합니다.
-# 모든 출처, 모든 헤더, 모든 메서드를 명시적으로 허용합니다.
 CORS(app, resources={r"/*": {"origins": "*"}},
      allow_headers=["Authorization", "Content-Type"],
      methods=["GET", "POST", "OPTIONS"],
      supports_credentials=True)
 
-# ▼▼▼▼▼ 배포 확인을 위한 새로운 로그 ▼▼▼▼▼
-print("==========================================================")
-print("=== !!! NEW DEPLOYMENT VERIFIED - 2025-07-14-AM !!! ===")
-print("==========================================================")
+# ▼▼▼▼▼ 1단계: 허가된 사용자 목록 (임시 데이터베이스) ▼▼▼▼▼
+AUTHORIZED_USERS = [
+    {'name': '박예준2', 'email': 'pyj2425@hanmail.net'},
+    # 필요에 따라 다른 사용자 추가
+    {'name': 'test_user', 'email': 'test@example.com'}
+]
+# ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-# 보안을 위해 코드에 직접 키를 넣는 대신, 'GEMINI_API_KEY'라는 이름의 환경 변수에서 키를 가져옵니다.
-# 서버 실행 시 이 환경 변수를 설정해야 합니다.
 try:
-    # os.environ.get()을 사용하여 환경 변수를 읽어옵니다.
     API_KEY = os.environ.get("GEMINI_API_KEY")
     if not API_KEY:
-        # API 키가 없으면 오류를 발생시켜 서버 로그에 명확히 표시합니다.
-        raise ValueError("환경 변수 'GEMINI_API_KEY'가 설정되지 않았습니다. 서버 실행 시 API 키를 설정해주세요.")
+        raise ValueError("환경 변수 'GEMINI_API_KEY'가 설정되지 않았습니다.")
     
     genai.configure(api_key=API_KEY)
-    
-    model = genai.GenerativeModel('gemini-2.5-pro')
+    model = genai.GenerativeModel('gemini-1.5-pro-latest') # 모델명은 최신 버전으로 유지
     print("Gemini API 모델이 성공적으로 초기화되었습니다.")
 
 except Exception as e:
-    # API 키가 없거나 잘못된 경우 등 초기화 실패 시 에러를 출력합니다.
     print(f"!!! Gemini API 초기화 오류: {e}")
-    model = None # 모델 초기화 실패 시 None으로 설정하여 이후 호출에서 에러를 방지합니다.
-
-
-
+    model = None
 
 # ==============================================================================
-# 3. 워드 문서 생성 헬퍼 함수
+# 3. 워드 문서 생성 헬퍼 함수 (기존과 동일)
 # ==============================================================================
-
 def create_page_number_field(paragraph, field_text):
-    """단락에 페이지 번호 필드를 삽입하는 OXML 레벨 함수"""
     run = paragraph.add_run()
     fldChar_begin = docx.oxml.shared.OxmlElement('w:fldChar'); fldChar_begin.set(docx.oxml.ns.qn('w:fldCharType'), 'begin'); run._r.append(fldChar_begin)
     run = paragraph.add_run(); instrText = docx.oxml.shared.OxmlElement('w:instrText'); instrText.set(docx.oxml.ns.qn('xml:space'), 'preserve'); instrText.text = field_text; run._r.append(instrText)
@@ -71,7 +63,6 @@ def create_page_number_field(paragraph, field_text):
     run = paragraph.add_run(); fldChar_end = docx.oxml.shared.OxmlElement('w:fldChar'); fldChar_end.set(docx.oxml.ns.qn('w:fldCharType'), 'end'); run._r.append(fldChar_end)
 
 def set_cell_border(cell, **kwargs):
-    """셀의 테두리를 개별적으로 설정하는 헬퍼 함수."""
     tcPr = cell._tc.get_or_add_tcPr()
     tcBorders = tcPr.first_child_found_in("w:tcBorders")
     if tcBorders is None:
@@ -86,7 +77,6 @@ def set_cell_border(cell, **kwargs):
         tcBorders.append(border_element)
 
 def add_image_border(run, border_width_pt=0, border_color='000000'):
-    """run 객체에 명확하고 일관된 그림 테두리를 추가합니다."""
     border_width_emu = int(border_width_pt * 12700)
     r = run._r
     drawing = r.find(qn('w:drawing'))
@@ -104,7 +94,6 @@ def add_image_border(run, border_width_pt=0, border_color='000000'):
     spPr.append(ln)
 
 def insert_image_to_paragraph(p, image_url_or_id, section):
-    """지정된 단락(p)에 URL 또는 ID로부터 이미지를 다운로드하여 삽입합니다."""
     try:
         drive_match = re.search(r'/file/d/([a-zA-Z0-9_-]+)', image_url_or_id)
         image_url = f'https://drive.google.com/uc?export=download&id={drive_match.group(1)}' if drive_match else image_url_or_id
@@ -128,7 +117,6 @@ def insert_image_to_paragraph(p, image_url_or_id, section):
         p.add_run(f"[이미지 로드 오류: {e}]")
 
 def merge_empty_cells_in_table(table):
-    """테이블 객체를 받아 비어있는 셀을 왼쪽 셀과 병합합니다."""
     for row in table.rows:
         for i in range(len(row.cells) - 1, 0, -1):
             if row.cells[i].text.strip() == '':
@@ -136,7 +124,6 @@ def merge_empty_cells_in_table(table):
                 left_cell.merge(row.cells[i])
 
 def parse_complex_table_data(raw_lines, num_cols=24):
-    """{표시작2}의 내용을 파싱하여 2D 리스트로 반환합니다."""
     final_table_data = []
     for line in raw_lines:
         row_data = [''] * num_cols
@@ -158,7 +145,6 @@ def parse_complex_table_data(raw_lines, num_cols=24):
     return final_table_data
 
 def generate_dynamic_filename(title):
-    """입력된 제목에 따라 동적으로 파일명을 생성합니다."""
     if not title:
         kst = timezone(timedelta(hours=9))
         now_kst = datetime.now(kst)
@@ -170,7 +156,6 @@ def generate_dynamic_filename(title):
     return filename
 
 def create_word_document(text_content, settings):
-    """모든 편집 구문을 해석하여 docx 문서를 생성하는 최종 함수"""
     doc = Document()
     style = doc.styles['Normal']
     font = style.font
@@ -373,43 +358,12 @@ def create_word_document(text_content, settings):
     return file_stream
 
 # ==============================================================================
-# 3.5: 💡 [신규] Google Sheet 로깅 헬퍼 함수
+# 3.5: Google Sheet 로깅 헬퍼 함수 (3단계에서 사용 예정)
 # ==============================================================================
 def log_to_google_sheet(request_text, response_text, token_count):
-    try:
-        # 💡 중요: 이전에 준비한 실제 스프레드시트 ID로 교체하세요.
-        SPREADSHEET_ID = '13y3xCf1bS270gh8FE_P2HgoJyEg_cYm-Wd7c7ZP_Tuw'
-        
-        # Cloud Run에 마운트된 서비스 계정 키 파일 경로
-        SERVICE_ACCOUNT_FILE = '/secrets/google-sheets-key.json' 
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
-        creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        
-        service = build('sheets', 'v4', credentials=creds)
-
-        # KST (한국 표준시) 타임스탬프 생성
-        kst = timezone(timedelta(hours=9))
-        timestamp = datetime.now(kst).strftime('%Y-%m-%d %H:%M:%S')
-        
-        # 시트에 추가할 데이터 행
-        row_data = [timestamp, request_text, response_text, token_count]
-        
-        sheet = service.spreadsheets()
-        request_body = {'values': [row_data]}
-        request = sheet.values().append(
-            spreadsheetId=SPREADSHEET_ID,
-            range='Sheet1!A1',
-            valueInputOption='USER_ENTERED',
-            insertDataOption='INSERT_ROWS',
-            body=request_body
-        ).execute()
-        print(f"Google Sheet에 로그 기록 완료: {request}")
-
-    except Exception as e:
-        # 로깅 실패가 전체 API 응답에 영향을 주지 않도록 예외 처리
-        print(f"!!! Google Sheet 로깅 실패: {e}")
+    # 이 함수는 3단계에서 구현될 예정입니다.
+    print(f"Logging to Google Sheet (skipping for now): Request='{request_text}', Response='{response_text}', Tokens={token_count}")
+    pass
 
 # ==============================================================================
 # 4. Flask API 엔드포인트
@@ -417,12 +371,36 @@ def log_to_google_sheet(request_text, response_text, token_count):
 
 @app.route("/")
 def index():
-    """서버가 실행 중인지 확인하기 위한 기본 경로"""
     return "<h1>SaeRo AI Editor Backend is running.</h1>"
+
+# ▼▼▼▼▼ 1단계: 신규 추가된 사용자 인증 엔드포인트 ▼▼▼▼▼
+@app.route('/check-user', methods=['POST'])
+def handle_check_user():
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+
+        if not name or not email:
+            return jsonify({"error": "Name and email are required"}), 400
+
+        is_authorized = any(
+            user['name'] == name and user['email'] == email
+            for user in AUTHORIZED_USERS
+        )
+
+        return jsonify({"authorized": is_authorized})
+
+    except Exception as e:
+        print(f"Error in /check-user: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+# ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 @app.route('/create-docx', methods=['POST'])
 def handle_create_docx():
-    """프론트엔드로부터 요청을 받아 docx 파일을 생성하고 반환합니다."""
     try:
         if not request.is_json: return jsonify({"error": "Missing JSON in request"}), 400
         data = request.get_json()
@@ -444,18 +422,14 @@ def handle_create_docx():
 
 @app.route('/chat-gemini', methods=['POST'])
 def handle_chat():
-    """프론트엔드로부터 채팅 메시지와 기록(history)을 받아 Gemini API로 전달하고 응답을 반환합니다."""
     if model is None:
-        return jsonify({"error": "Gemini API 모델이 초기화되지 않았습니다. 서버 로그를 확인해주세요."}), 503
-
+        return jsonify({"error": "Gemini API 모델이 초기화되지 않았습니다."}), 503
     try:
         if not request.is_json:
             return jsonify({"error": "요청 형식이 올바르지 않습니다. (JSON 필요)"}), 400
         
         data = request.get_json()
         user_message = data.get('message')
-        
-        # 💡 추가: 프론트엔드에서 보낸 채팅 기록(history)을 받습니다.
         chat_history = data.get('history', []) 
 
         if not user_message:
@@ -469,16 +443,19 @@ def handle_chat():
         chat_session = model.start_chat(history=chat_history)
         response = chat_session.send_message(user_message)
         
-        # 💡 [수정] 토큰 사용량 추출 및 로깅 함수 호출
-        total_tokens = response.usage_metadata.total_token_count
-        log_to_google_sheet(user_message, response.text, total_tokens)
+        # 3단계에서 토큰 계산 및 로깅 구현 예정
+        # total_tokens = response.usage_metadata.total_token_count
+        # log_to_google_sheet(user_message, response.text, total_tokens)
         
         return jsonify({"reply": response.text})
 
     except Exception as e:
         error_message = f"AI 통신 오류: {str(e)}"
-        # 💡 [수정] API 오류 발생 시에도 로깅
-        log_to_google_sheet(user_message, error_message, 0)
+        # 3단계에서 오류 로깅 구현 예정
+        # log_to_google_sheet(user_message, error_message, 0)
         
         print(f"!!! Gemini API 호출 오류: {e}")
         return jsonify({"error": error_message}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
