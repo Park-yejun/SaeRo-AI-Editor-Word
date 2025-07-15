@@ -8,6 +8,8 @@ import requests
 import docx
 import json
 import google.generativeai as genai
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from datetime import datetime, timezone, timedelta
@@ -18,8 +20,6 @@ from docx.enum.section import WD_ORIENTATION
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from PIL import Image
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 
 # ==============================================================================
 # 2. Flask 앱 초기화 및 설정
@@ -30,21 +30,30 @@ CORS(app, resources={r"/*": {"origins": "*"}},
      methods=["GET", "POST", "OPTIONS"],
      supports_credentials=True)
 
-# ▼▼▼▼▼ 1단계: 허가된 사용자 목록 (임시 데이터베이스) ▼▼▼▼▼
-AUTHORIZED_USERS = [
-    {'name': '박예준2', 'email': 'pyj2425@hanmail.net'},
-    # 필요에 따라 다른 사용자 추가
-    {'name': 'test_user', 'email': 'test@example.com'}
-]
-# ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+# --- Google Sheets 설정 ---
+SHEET_API_SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+# 환경 변수에서 서비스 계정 키(JSON 내용)를 직접 읽어옴
+try:
+    creds_json_str = os.environ.get("GOOGLE_SHEETS_CREDENTIALS")
+    if not creds_json_str:
+        raise ValueError("환경 변수 'GOOGLE_SHEETS_CREDENTIALS'가 설정되지 않았습니다.")
+    creds_dict = json.loads(creds_json_str)
+    SHEET_CREDS = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SHEET_API_SCOPES)
+    SHEET_CLIENT = gspread.authorize(SHEET_CREDS)
+    print("Google Sheets API가 성공적으로 초기화되었습니다.")
+except Exception as e:
+    SHEET_CLIENT = None
+    print(f"!!! Google Sheets API 초기화 오류: {e}")
 
+
+# --- Gemini API 설정 ---
 try:
     API_KEY = os.environ.get("GEMINI_API_KEY")
     if not API_KEY:
         raise ValueError("환경 변수 'GEMINI_API_KEY'가 설정되지 않았습니다.")
-    
+
     genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-pro-latest') # 모델명은 최신 버전으로 유지
+    model = genai.GenerativeModel('gemini-1.5-pro-latest')
     print("Gemini API 모델이 성공적으로 초기화되었습니다.")
 
 except Exception as e:
@@ -52,7 +61,7 @@ except Exception as e:
     model = None
 
 # ==============================================================================
-# 3. 워드 문서 생성 헬퍼 함수 (기존과 동일)
+# 3. 워드 문서 생성 헬퍼 함수 (변경 없음)
 # ==============================================================================
 def create_page_number_field(paragraph, field_text):
     run = paragraph.add_run()
@@ -358,11 +367,10 @@ def create_word_document(text_content, settings):
     return file_stream
 
 # ==============================================================================
-# 3.5: Google Sheet 로깅 헬퍼 함수 (3단계에서 사용 예정)
+# 3.5: Google Sheet 로깅 헬퍼 함수 (다음 단계에서 사용 예정)
 # ==============================================================================
-def log_to_google_sheet(request_text, response_text, token_count):
-    # 이 함수는 3단계에서 구현될 예정입니다.
-    print(f"Logging to Google Sheet (skipping for now): Request='{request_text}', Response='{response_text}', Tokens={token_count}")
+def log_to_gemini_usage_sheet(request_text, response_text, token_count):
+    print(f"Logging to Gemini Usage Sheet (skipping for now): Request='{request_text}', Response='{response_text}', Tokens={token_count}")
     pass
 
 # ==============================================================================
@@ -373,13 +381,16 @@ def log_to_google_sheet(request_text, response_text, token_count):
 def index():
     return "<h1>SaeRo AI Editor Backend is running.</h1>"
 
-# ▼▼▼▼▼ 1단계: 신규 추가된 사용자 인증 엔드포인트 ▼▼▼▼▼
+
 @app.route('/check-user', methods=['POST'])
 def handle_check_user():
+    if not SHEET_CLIENT:
+        return jsonify({"error": "Google Sheets service is not available"}), 503
+
     try:
         if not request.is_json:
             return jsonify({"error": "Request must be JSON"}), 400
-        
+
         data = request.get_json()
         name = data.get('name')
         email = data.get('email')
@@ -387,17 +398,31 @@ def handle_check_user():
         if not name or not email:
             return jsonify({"error": "Name and email are required"}), 400
 
-        is_authorized = any(
-            user['name'] == name and user['email'] == email
-            for user in AUTHORIZED_USERS
-        )
+        # 구글 시트 열기
+        spreadsheet = SHEET_CLIENT.open_by_key("10FWgDt04ox83Fc2iDM66seswL1k2W-rfhO")
+        worksheet = spreadsheet.worksheet("시트1")
+
+        # 모든 데이터 가져오기 (헤더 포함)
+        all_users = worksheet.get_all_records()
+
+        is_authorized = False
+        for user_record in all_users:
+            # 시트의 헤더 이름과 정확히 일치해야 함
+            if (user_record.get('사용자이름') == name and
+                user_record.get('이메일') == email and
+                str(user_record.get('상태')).strip() == '1'):
+                is_authorized = True
+                break
 
         return jsonify({"authorized": is_authorized})
 
+    except gspread.exceptions.SpreadsheetNotFound:
+         print("Error: Spreadsheet not found. Check the key and sharing settings.")
+         return jsonify({"error": "Could not access the user list spreadsheet."}), 500
     except Exception as e:
         print(f"Error in /check-user: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
-# ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
 
 @app.route('/create-docx', methods=['POST'])
 def handle_create_docx():
@@ -427,14 +452,14 @@ def handle_chat():
     try:
         if not request.is_json:
             return jsonify({"error": "요청 형식이 올바르지 않습니다. (JSON 필요)"}), 400
-        
+
         data = request.get_json()
         user_message = data.get('message')
-        chat_history = data.get('history', []) 
+        chat_history = data.get('history', [])
 
         if not user_message:
             return jsonify({"error": "'message' 필드가 요청에 포함되지 않았습니다."}), 400
-            
+
     except Exception as e:
         print(f"요청 데이터 처리 중 오류 발생: {e}")
         return jsonify({"error": "요청 데이터를 파싱하는 중 오류가 발생했습니다."}), 400
@@ -442,18 +467,18 @@ def handle_chat():
     try:
         chat_session = model.start_chat(history=chat_history)
         response = chat_session.send_message(user_message)
-        
-        # 3단계에서 토큰 계산 및 로깅 구현 예정
+
+        # 다음 단계에서 토큰 계산 및 로깅 구현 예정
         # total_tokens = response.usage_metadata.total_token_count
-        # log_to_google_sheet(user_message, response.text, total_tokens)
-        
+        # log_to_gemini_usage_sheet(user_message, response.text, total_tokens)
+
         return jsonify({"reply": response.text})
 
     except Exception as e:
         error_message = f"AI 통신 오류: {str(e)}"
-        # 3단계에서 오류 로깅 구현 예정
-        # log_to_google_sheet(user_message, error_message, 0)
-        
+        # 다음 단계에서 오류 로깅 구현 예정
+        # log_to_gemini_usage_sheet(user_message, error_message, 0)
+
         print(f"!!! Gemini API 호출 오류: {e}")
         return jsonify({"error": error_message}), 500
 
